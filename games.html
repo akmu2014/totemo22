@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Games • Monument Vibe</title>
+
+  <!-- Link preview (optional but recommended) -->
+  <meta property="og:title" content="Games • Monument Vibe" />
+  <meta property="og:description" content="Collection of games" />
+  <meta property="og:image" content="https://akmu14.github.io/totemo22/image/image2.jpeg" />
+  <meta property="og:url" content="https://akmu14.github.io/totemo22/games.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.16);
+      --border2: rgba(255,255,255,.38);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 860px;
+    }
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(26px, 4.8vw, 40px);
+      letter-spacing:.4px;
+    }
+    .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      white-space:nowrap;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+    .btn:focus-visible{ outline:3px solid rgba(255,255,255,.55); outline-offset:3px; }
+
+    .list{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      background: #111;
+    }
+
+    /* NEW: thumbnail image */
+    .thumb{
+      width:100%;
+      aspect-ratio: 16 / 9;
+      display:block;
+      object-fit: cover;
+      background:#0d0d0d;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-inner{
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+
+    .card-title{
+      margin:0;
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+
+    .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+      <header>
+        <div>
+          <h1>Games</h1>
+          <p class="sub">A small collection of games</p>
+        </div>
+        <a class="btn" href="index.html" aria-label="Back to home">← Back</a>
+      </header>
+
+      <section class="list" aria-label="Games list">
+
+        <!-- Game 1 -->
+        <article class="card">
+          <img class="thumb" src="game_images/images1.jpeg" alt="Wordle (Unlimited) thumbnail" loading="lazy" />
+          <div class="card-inner">
+            <div class="row">
+              <h2 class="card-title">Wordle (Unlimited)</h2>
+            </div>
+            <div class="actions">
+              <a class="btn" href="https://akmu2014.github.io/wordle/" target="_blank" rel="noopener">
+                Play
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Game 2 -->
+        <article class="card">
+          <img class="thumb" src="game_images/images2.jpeg" alt="Math Game thumbnail" loading="lazy" />
+          <div class="card-inner">
+            <div class="row">
+              <h2 class="card-title">Math Game</h2>
+            </div>
+            <div class="actions">
+              <a class="btn" href="https://akmu2014.github.io/math-game/" target="_blank" rel="noopener">
+                Play
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Game 3 -->
+        <article class="card">
+          <img class="thumb" src="game_images/images3.jpeg" alt="Korean Food thumbnail" loading="lazy" />
+          <div class="card-inner">
+            <div class="row">
+              <h2 class="card-title">Korean Food</h2>
+            </div>
+            <div class="actions">
+              <a class="btn" href="https://akmu2014.github.io/koreanfood" target="_blank" rel="noopener">
+                Play
+              </a>
+            </div>
+          </div>
+        </article>
+
+      </section>
+    </main>
+  </div>
+</body>
+</html>
