@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bible Study Database • Monument Vibe</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.4);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 1100px;
+
+      /* Column accent colors */
+      --old-accent: rgba(70, 160, 255, .22);
+      --new-accent: rgba(70, 255, 170, .18);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(22px, 4.5vw, 38px);
+      letter-spacing:.3px;
+    }
+    .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.35;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .cols{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+    }
+    @media (min-width: 900px){
+      .cols{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .col{
+      border:1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      background:#0f0f0f;
+    }
+
+    .col-head{
+      padding:14px 16px;
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid var(--border);
+    }
+    .col-title{
+      margin:0;
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:.3px;
+    }
+    .count{
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    /* Different column colors */
+    .old .col-head{ background: linear-gradient(90deg, var(--old-accent), rgba(0,0,0,0)); }
+    .new .col-head{ background: linear-gradient(90deg, var(--new-accent), rgba(0,0,0,0)); }
+
+    .books{
+      padding:14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    @media (min-width: 520px){
+      .books{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .book{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:12px 10px;
+      min-height:46px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      color:var(--fg);
+      text-decoration:none;
+      font-weight:650;
+      letter-spacing:.2px;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .book:hover{
+      transform: translateY(-1px);
+      border-color: var(--border2);
+      background: rgba(255,255,255,.08);
+    }
+    .book:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:3px;
+    }
+
+    footer{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+      <header>
+        <div>
+          <h1>Bible Study Database</h1>
+
+        </div>
+        <a class="btn" href="coffee.html">← Back</a>
+      </header>
+
+      <section class="cols" aria-label="Old and New Testament book lists">
+
+        <!-- Old Testament -->
+        <div class="col old" aria-label="Old Testament">
+          <div class="col-head">
+            <h2 class="col-title">Old Testimony</h2>
+            <span class="count">39 books</span>
+          </div>
+          <div class="books">
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=genesis" target="_blank" rel="noopener">Genesis</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=exodus" target="_blank" rel="noopener">Exodus</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=leviticus" target="_blank" rel="noopener">Leviticus</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=numbers" target="_blank" rel="noopener">Numbers</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=deuteronomy" target="_blank" rel="noopener">Deuteronomy</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=joshua" target="_blank" rel="noopener">Joshua</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=judges" target="_blank" rel="noopener">Judges</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=ruth" target="_blank" rel="noopener">Ruth</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-samuel" target="_blank" rel="noopener">1 Samuel</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-samuel" target="_blank" rel="noopener">2 Samuel</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-kings" target="_blank" rel="noopener">1 Kings</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-kings" target="_blank" rel="noopener">2 Kings</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-chronicles" target="_blank" rel="noopener">1 Chronicles</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-chronicles" target="_blank" rel="noopener">2 Chronicles</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=ezra" target="_blank" rel="noopener">Ezra</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=nehemiah" target="_blank" rel="noopener">Nehemiah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=esther" target="_blank" rel="noopener">Esther</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=job" target="_blank" rel="noopener">Job</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=psalms" target="_blank" rel="noopener">Psalms</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=proverbs" target="_blank" rel="noopener">Proverbs</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=ecclesiastes" target="_blank" rel="noopener">Ecclesiastes</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=song-of-songs" target="_blank" rel="noopener">Song of Solomon</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=isaiah" target="_blank" rel="noopener">Isaiah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=jeremiah" target="_blank" rel="noopener">Jeremiah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=lamentations" target="_blank" rel="noopener">Lamentations</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=ezekiel" target="_blank" rel="noopener">Ezekiel</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=daniel" target="_blank" rel="noopener">Daniel</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=hosea" target="_blank" rel="noopener">Hosea</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=joel" target="_blank" rel="noopener">Joel</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=amos" target="_blank" rel="noopener">Amos</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=obadiah" target="_blank" rel="noopener">Obadiah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=jonah" target="_blank" rel="noopener">Jonah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=micah" target="_blank" rel="noopener">Micah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=nahum" target="_blank" rel="noopener">Nahum</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=habakkuk" target="_blank" rel="noopener">Habakkuk</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=zephaniah" target="_blank" rel="noopener">Zephaniah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=haggai" target="_blank" rel="noopener">Haggai</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=zechariah" target="_blank" rel="noopener">Zechariah</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=malachi" target="_blank" rel="noopener">Malachi</a>
+          </div>
+        </div>
+
+        <!-- New Testament -->
+        <div class="col new" aria-label="New Testament">
+          <div class="col-head">
+            <h2 class="col-title">New Testimony</h2>
+            <span class="count">27 books</span>
+          </div>
+          <div class="books">
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=matthew" target="_blank" rel="noopener">Matthew</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=mark" target="_blank" rel="noopener">Mark</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=luke" target="_blank" rel="noopener">Luke</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=john" target="_blank" rel="noopener">John</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=acts" target="_blank" rel="noopener">Acts</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=romans" target="_blank" rel="noopener">Romans</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-corinthians" target="_blank" rel="noopener">1 Corinthians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-corinthians" target="_blank" rel="noopener">2 Corinthians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=galatians" target="_blank" rel="noopener">Galatians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=ephesians" target="_blank" rel="noopener">Ephesians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=philippians" target="_blank" rel="noopener">Philippians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=colossians" target="_blank" rel="noopener">Colossians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-thessalonians" target="_blank" rel="noopener">1 Thessalonians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-thessalonians" target="_blank" rel="noopener">2 Thessalonians</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-timothy" target="_blank" rel="noopener">1 Timothy</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-timothy" target="_blank" rel="noopener">2 Timothy</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=titus" target="_blank" rel="noopener">Titus</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=philemon" target="_blank" rel="noopener">Philemon</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=hebrews" target="_blank" rel="noopener">Hebrews</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=james" target="_blank" rel="noopener">James</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-peter" target="_blank" rel="noopener">1 Peter</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-peter" target="_blank" rel="noopener">2 Peter</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=1-john" target="_blank" rel="noopener">1 John</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=2-john" target="_blank" rel="noopener">2 John</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=3-john" target="_blank" rel="noopener">3 John</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=jude" target="_blank" rel="noopener">Jude</a>
+            <a class="book" href="https://ubf.org/daily-breads/list?bible_book=revelation" target="_blank" rel="noopener">Revelation</a>
+          </div>
+        </div>
+
+      </section>
+
+      <footer>
+        Tip: Links open in a new tab.
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
+
