@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> AKMU </title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.40);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 980px;
+
+      /* Tab colors */
+      --tab-on: rgba(255,255,255,.12);
+      --tab-off: rgba(255,255,255,.06);
+
+      /* Discography card bg */
+      --card: #111;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+    }
+
+    /* Sticky heading area (title + tabs) */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(0,0,0,.86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0 10px 0;
+      margin-bottom: 14px;
+    }
+
+    .head-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(26px, 4.8vw, 42px);
+      letter-spacing:.4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin-top: 12px;
+    }
+
+    .tab{
+      flex:1;
+      text-align:center;
+      padding:12px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--tab-off);
+      color: var(--fg);
+      font-weight: 750;
+      letter-spacing:.2px;
+      cursor:pointer;
+      user-select:none;
+      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab:hover{ transform: translateY(-1px); border-color: var(--border2); }
+    .tab[aria-selected="true"]{
+      background: var(--tab-on);
+      border-color: var(--border2);
+    }
+    .tab:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:3px;
+    }
+
+    /* Content sections */
+    .panel{ display:none; }
+    .panel.is-active{ display:block; }
+
+    /* PROFILE */
+    .hero{
+      border:1px solid var(--border);
+      border-radius: 22px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      background:#111;
+    }
+    .hero img{
+      width:100%;
+      display:block;
+      object-fit:cover;
+      max-height: 360px;
+    }
+    .hero-body{
+      padding:14px 14px 16px 14px;
+      display:grid;
+      gap:14px;
+    }
+    .meta{
+      font-weight:800;
+      letter-spacing:.4px;
+      font-size: 16px;
+    }
+    .section-title{
+      margin:0;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing:.3px;
+    }
+
+    .members{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+
+    .member{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      overflow:hidden;
+      background:#111;
+      box-shadow: var(--shadow);
+      text-decoration:none;
+      color:var(--fg);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+    .member:hover{ transform: translateY(-1px); border-color: var(--border2); }
+    .member img{
+      width:100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      display:block;
+      background:#0b0b0b;
+    }
+    .member-body{
+      padding:10px 12px 12px;
+      display:grid;
+      gap:6px;
+    }
+    .member-name{
+      margin:0;
+      font-weight: 900;
+      letter-spacing:.3px;
+      font-size: 14px;
+    }
+    .member-dob{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+
+    /* DISCOGRAPHY */
+    .albums{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (min-width: 720px){
+      .albums{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+
+    .album{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      overflow:hidden;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      text-decoration:none;
+      color:var(--fg);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+    .album:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .album img{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display:block;
+      background:#0b0b0b;
+    }
+
+    .album-body{
+      padding:10px 10px 12px;
+      display:grid;
+      gap:5px;
+    }
+    .album-title{
+      margin:0;
+      font-weight: 950;
+      letter-spacing:.3px;
+      font-size: 13px;
+      line-height: 1.15;
+    }
+    .album-sub{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+    .album-date{
+      margin:0;
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+
+    /* Minor spacing on tiny screens */
+    @media (max-width: 360px){
+      .wrap{ padding:16px; }
+      .albums{ gap:10px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+
+      <!-- Sticky header + tabs -->
+      <div class="topbar" role="banner">
+        <div class="head-row">
+          <h1>AKMU</h1>
+          <a class="btn" href="index.html">← Back</a>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="AKMU tabs">
+          <button class="tab" id="tab-profile" role="tab" aria-selected="true" aria-controls="panel-profile" type="button">
+            PROFILE
+          </button>
+          <button class="tab" id="tab-discography" role="tab" aria-selected="false" aria-controls="panel-discography" type="button">
+            DISCOGRAPHY
+          </button>
+        </div>
+      </div>
+
+      <!-- PROFILE panel -->
+      <section class="panel is-active" id="panel-profile" role="tabpanel" aria-labelledby="tab-profile">
+        <div class="hero">
+          <img src="AKMU_images/image1.jpg" alt="AKMU group photo" loading="lazy" />
+          <div class="hero-body">
+            <div class="meta">DEBUT 04.07.2014</div>
+
+            <h2 class="section-title">Member</h2>
+
+            <div class="members">
+              <a class="member" href="leechanhyuk.html" aria-label="Lee Chanhyuk page">
+                <img src="AKMU_images/image2.jpg" alt="LEE CHANHYUK" loading="lazy" />
+                <div class="member-body">
+                  <p class="member-name">LEE CHANHYUK</p>
+                  <p class="member-dob">DOB 09.12.1996</p>
+                </div>
+              </a>
+
+              <a class="member" href="leesuhyun.html" aria-label="Lee Suhyun page">
+                <img src="AKMU_images/image3.jpg" alt="LEE SUHYUN" loading="lazy" />
+                <div class="member-body">
+                  <p class="member-name">LEE SUHYUN</p>
+                  <p class="member-dob">DOB 05.04.1999</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DISCOGRAPHY panel -->
+      <section class="panel" id="panel-discography" role="tabpanel" aria-labelledby="tab-discography">
+        <div class="albums" aria-label="AKMU discography albums">
+
+          <a class="album" href="loveepisode.html" aria-label="LOVE EPISODE page">
+            <img src="AKMU_images/album1.jpg" alt="LOVE EPISODE album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">LOVE EPISODE</p>
+              <p class="album-sub">3rd MINI ALBUM</p>
+              <p class="album-date">06-03-2024</p>
+            </div>
+          </a>
+
+          <a class="album" href="lovelee.html" aria-label="Love Lee page">
+            <img src="AKMU_images/album2.jpg" alt="Love Lee album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">Love Lee</p>
+              <p class="album-sub">4th SINGLE</p>
+              <p class="album-date">08-21-2023</p>
+            </div>
+          </a>
+
+          <a class="album" href="nextepisode.html" aria-label="NEXT EPISODE page">
+            <img src="AKMU_images/album3.jpg" alt="NEXT EPISODE album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">NEXT EPISODE</p>
+              <p class="album-sub">2nd MINI ALBUM</p>
+              <p class="album-date">07-26-2021</p>
+            </div>
+          </a>
+
+          <a class="album" href="happening.html" aria-label="HAPPENING page">
+            <img src="AKMU_images/album4.jpg" alt="HAPPENING album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">HAPPENING</p>
+              <p class="album-sub">SINGLE ALBUM</p>
+              <p class="album-date">11-16-2020</p>
+            </div>
+          </a>
+
+          <a class="album" href="sailing.html" aria-label="SAILING page">
+            <img src="AKMU_images/album5.jpg" alt="SAILING album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">SAILING</p>
+              <p class="album-sub">3rd FULL ALBUM</p>
+              <p class="album-date">09-25-2019</p>
+            </div>
+          </a>
+
+          <a class="album" href="summerepisode.html" aria-label="SUMMER EPISODE page">
+            <img src="AKMU_images/album6.jpg" alt="SUMMER EPISODE album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">SUMMER EPISODE</p>
+              <p class="album-sub">SINGLE ALBUM</p>
+              <p class="album-date">07-20-2017</p>
+            </div>
+          </a>
+
+          <a class="album" href="winter.html" aria-label="WINTER page">
+            <img src="AKMU_images/album7.jpg" alt="WINTER album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">WINTER</p>
+              <p class="album-sub">2nd FULL ALBUM</p>
+              <p class="album-date">01-03-2017</p>
+            </div>
+          </a>
+
+          <a class="album" href="spring.html" aria-label="SPRING page">
+            <img src="AKMU_images/album8.jpg" alt="SPRING album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">SPRING</p>
+              <p class="album-sub">1st MINI ALBUM</p>
+              <p class="album-date">05-04-2016</p>
+            </div>
+          </a>
+
+          <a class="album" href="timeandfallenleaves.html" aria-label="Time and Fallen Leaves page">
+            <img src="AKMU_images/album9.jpg" alt="Time and Fallen Leaves cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">Time and Fallen Leaves</p>
+              <p class="album-sub">DIGITAL SINGLE</p>
+              <p class="album-date">10-10-2014</p>
+            </div>
+          </a>
+
+          <a class="album" href="play.html" aria-label="PLAY page">
+            <img src="AKMU_images/album10.jpg" alt="PLAY album cover" loading="lazy" />
+            <div class="album-body">
+              <p class="album-title">PLAY</p>
+              <p class="album-sub">1st FULL ALBUM</p>
+              <p class="album-date">04-03-2014</p>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const tabProfile = document.getElementById("tab-profile");
+    const tabDiscography = document.getElementById("tab-discography");
+    const panelProfile = document.getElementById("panel-profile");
+    const panelDiscography = document.getElementById("panel-discography");
+
+    function setTab(which) {
+      const profileOn = which === "profile";
+
+      tabProfile.setAttribute("aria-selected", String(profileOn));
+      tabDiscography.setAttribute("aria-selected", String(!profileOn));
+
+      panelProfile.classList.toggle("is-active", profileOn);
+      panelDiscography.classList.toggle("is-active", !profileOn);
+
+      // nice: keep focus style correct
+      (profileOn ? tabProfile : tabDiscography).focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    tabProfile.addEventListener("click", () => setTab("profile"));
+    tabDiscography.addEventListener("click", () => setTab("discography"));
+  </script>
+</body>
+</html>
