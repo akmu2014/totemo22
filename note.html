@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes • Monument Vibe</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.40);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 22px;
+      --maxw: 980px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(26px, 4.8vw, 42px);
+      letter-spacing:.4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      white-space:nowrap;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: var(--border2);
+    }
+
+    /* Tiles */
+    .stack{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:16px;
+    }
+
+    .tile{
+      position:relative;
+      display:block;
+      height:160px;
+      border-radius: var(--radius);
+      overflow:hidden;
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      text-decoration:none;
+      color:var(--fg);
+      background:#111;
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+    .tile:hover{
+      transform: translateY(-2px);
+      border-color: var(--border2);
+    }
+
+    .tile img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      filter: brightness(.75) contrast(1.05);
+    }
+
+    .tile::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.35),
+        rgba(0,0,0,.55)
+      );
+    }
+
+    .tile-title{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 800;
+      letter-spacing:.4px;
+      z-index:2;
+      padding:0 14px;
+    }
+
+    @media (max-width:360px){
+      .wrap{ padding:16px; }
+      .stack{ gap:12px; }
+      .tile{ height:140px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+
+      <header>
+        <h1>Notes</h1>
+        <a class="btn" href="https://akmu2014.github.io/totemo22/">← Back</a>
+      </header>
+
+      <section class="stack" aria-label="Notes sections">
+
+        <!-- Japan Trip Ideas & Tips -->
+        <a class="tile" href="japan.html" aria-label="Japan Trip Ideas and Tips">
+          <img src="Note_images/image1.jpeg" alt="Japan Trip Ideas and Tips" loading="lazy" />
+          <div class="tile-title">Japan Trip Ideas &amp; Tips</div>
+        </a>
+
+        <!-- Parenting Advice -->
+        <a class="tile" href="parenting.html" aria-label="Parenting Advice">
+          <img src="Note_images/image2.jpeg" alt="Parenting Advice" loading="lazy" />
+          <div class="tile-title">Parenting Advice</div>
+        </a>
+
+        <!-- Additional Resources -->
+        <a class="tile" href="resources.html" aria-label="Additional Resources">
+          <img src="Note_images/image3.jpeg" alt="Additional Resources" loading="lazy" />
+          <div class="tile-title">Additional Resources</div>
+        </a>
+
+      </section>
+    </main>
+  </div>
+</body>
+</html>
