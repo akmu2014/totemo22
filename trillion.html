@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1 TRILLION • LEE CHANHYUK</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.40);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 980px;
+      --card:#111;
+    }
+
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{ width:100%; max-width:var(--maxw); }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(24px, 4.6vw, 40px);
+      letter-spacing:.4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .section{ padding:14px; display:grid; gap:12px; }
+
+    /* YouTube (custom thumbnail) */
+    .yt{
+      border-radius: 16px;
+      border:1px solid var(--border);
+      overflow:hidden;
+      background:#000;
+    }
+    .yt-inner{
+      position:relative;
+      width:100%;
+      aspect-ratio: 16 / 9;
+      background:#000;
+    }
+    .yt-embed{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:none;
+    }
+
+    .yt-cover{
+      position:absolute;
+      inset:0;
+      border:0;
+      padding:0;
+      margin:0;
+      width:100%;
+      height:100%;
+      cursor:pointer;
+      background:#000;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .yt-cover:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:-3px;
+    }
+
+    .yt-thumb{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+    }
+
+    .yt-overlay{
+      position:absolute;
+      inset:0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.15),
+        rgba(0,0,0,.70)
+      );
+    }
+    .yt-ui{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:14px;
+      color:rgba(255,255,255,.92);
+    }
+    .play{
+      border:1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.14);
+      color:var(--fg);
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .yt-text{
+      color:rgba(255,255,255,.86);
+      font-size:14px;
+    }
+
+    /* Album image + meta */
+    .album{
+      display:grid;
+      gap:12px;
+    }
+    .album img{
+      width:100%;
+      max-width: 360px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background:#0b0b0b;
+      display:block;
+    }
+    .meta{
+      display:grid;
+      gap:6px;
+    }
+    .title{
+      margin:0;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing:.3px;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .date{
+      margin:0;
+      color: rgba(255,255,255,.62);
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+
+    .text{
+      margin:0;
+      color: rgba(255,255,255,.88);
+      line-height:1.55;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    .h2{
+      margin:6px 0 12px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing:.3px;
+    }
+
+    /* Track list (consistent with EROS/ERROR) */
+    .tracks{
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:10px;
+    }
+    .tracks li{ margin:0; padding:0; }
+
+    .track{
+      display:block;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.90);
+      font-size: 14px;
+      letter-spacing:.2px;
+      text-decoration:none;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .track:hover{
+      transform: translateY(-1px);
+      border-color: var(--border2);
+      background: rgba(255,255,255,.08);
+    }
+    .track:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:3px;
+    }
+
+    @media (min-width: 720px){
+      .album{ grid-template-columns: 360px 1fr; align-items:start; }
+      .album img{ max-width: 360px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+
+      <header>
+        <h1>1 TRILLION</h1>
+        <a class="btn" href="leechanhyuk.html#discography">← Back</a>
+      </header>
+
+      <article class="card">
+        <div class="section">
+
+          <!-- YouTube (click-to-play) -->
+          <div class="yt" aria-label="YouTube video">
+            <div class="yt-inner">
+              <iframe
+                class="yt-embed"
+                id="yt"
+                title="이찬혁 (LEE CHANHYUK) - ‘1조 (1 TRILLION)’ M/V (YouTube)"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+              </iframe>
+
+              <button class="yt-cover" id="ytCover" type="button" aria-label="Play YouTube video">
+                <img class="yt-thumb" src="AKMU_images/chan_youtube2.jpg" alt="Play YouTube video" loading="lazy" />
+                <span class="yt-overlay"></span>
+                <span class="yt-ui">
+                  <span class="play">▶ Play video</span>
+                  <span class="yt-text">YouTube • 이찬혁 (LEE CHANHYUK) - ‘1조 (1 TRILLION)’ M/V</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Album info -->
+          <div class="album">
+            <img src="AKMU_images/chan_alb2.jpg" alt="1 TRILLION cover" loading="lazy" />
+
+            <div class="meta">
+              <p class="title">1 TRILLION</p>
+              <p class="sub">1st SINGLE</p>
+              <p class="date">01-01-2024</p>
+
+              <p class="text">Ilhwakcheongeum (Strike It Rich)
+A phrase meaning to gain great fortune all at once, without difficulty.
+
+Inspired by a dream Lee Chanhyuk had in his youth—of a one-trillion-won coin—this song carries wishes of abundance and good fortune. As the new year begins, Ilhwakcheongeum hopes to bring the feeling of “striking it rich” to everyone who listens.
+
+Happy New Year.</p>
+
+              <div>
+                <h2 class="h2">Track List</h2>
+
+                <ul class="tracks">
+                  <li>
+                    <a class="track"
+                       href="https://music.apple.com/us/song/1-trillion/1721119267"
+                       target="_blank"
+                       rel="noopener">
+                      1 TRILLION
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <script>
+    // Click-to-play YouTube embed (loads only when user clicks)
+    // Source link: https://youtu.be/KMlfL9Xy-K4
+    const VIDEO_ID = "KMlfL9Xy-K4";
+    const cover = document.getElementById("ytCover");
+    const iframe = document.getElementById("yt");
+
+    function play() {
+      iframe.src = "https://www.youtube-nocookie.com/embed/" + VIDEO_ID + "?autoplay=1&rel=0";
+      iframe.style.display = "block";
+      cover.style.display = "none";
+    }
+
+    cover.addEventListener("click", play);
+  </script>
+</body>
+</html>
