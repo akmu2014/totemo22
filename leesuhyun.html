@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LEE SUHYUN • AKMU</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.40);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 980px;
+
+      /* Tab colors (HIGH CONTRAST) — consistent with akmu.html */
+      --tab-on-bg: rgba(255,255,255,.92);
+      --tab-on-text: #000;
+      --tab-off-bg: rgba(255,255,255,.06);
+      --tab-glow: 0 0 0 1px rgba(255,255,255,.65),
+                  0 10px 26px rgba(255,255,255,.18);
+
+      --card: #111;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{ width:100%; max-width:var(--maxw); }
+
+    /* Sticky heading area (title + tabs) */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(0,0,0,.86);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0 10px 0;
+      margin-bottom: 14px;
+    }
+
+    .head-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(24px, 4.8vw, 42px);
+      letter-spacing:.4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin-top: 12px;
+    }
+
+    .tab{
+      flex:1;
+      text-align:center;
+      padding:12px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: var(--tab-off-bg);
+      color: var(--fg);
+      font-weight: 750;
+      letter-spacing:.2px;
+      cursor:pointer;
+      user-select:none;
+      transition:
+        background 160ms ease,
+        color 160ms ease,
+        box-shadow 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab:hover{ transform: translateY(-1px); border-color: var(--border2); }
+    .tab:active{ transform: scale(.985); }
+    .tab[aria-selected="true"]{
+      background: var(--tab-on-bg);
+      color: var(--tab-on-text);
+      border-color: rgba(255,255,255,.9);
+      box-shadow: var(--tab-glow);
+    }
+    .tab:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:3px;
+    }
+
+    /* Panels */
+    .panel{ display:none; }
+    .panel.is-active{ display:block; }
+
+    /* PROFILE card */
+    .profile-card{
+      border:1px solid var(--border);
+      border-radius: 22px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      background: var(--card);
+    }
+    .profile-card img{
+      width:100%;
+      display:block;
+      object-fit: cover;
+      max-height: 420px;
+      background:#0b0b0b;
+    }
+    .profile-body{
+      padding:14px 14px 16px 14px;
+      display:grid;
+      gap:12px;
+    }
+    .meta-line{
+      font-weight:900;
+      letter-spacing:.35px;
+      font-size: 14px;
+    }
+    .meta-line span{
+      display:inline-block;
+      min-width: 64px;
+      color: rgba(255,255,255,.85);
+    }
+
+    .link-row{ margin-top: 4px; }
+
+    .ig{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-weight:800;
+      font-size: 13px;
+      letter-spacing:.2px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ig:hover{ transform: translateY(-1px); border-color: var(--border2); }
+    .ig small{ color: var(--muted); font-weight:700; }
+
+    /* DISCOGRAPHY grid — consistent with akmu.html */
+    .albums{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+    @media (min-width: 720px){
+      .albums{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      overflow:hidden;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      text-decoration:none;
+      color:var(--fg);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+    .card:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .card img{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display:block;
+      background:#0b0b0b;
+    }
+
+    .card-body{
+      padding:10px 10px 12px;
+      display:grid;
+      gap:5px;
+    }
+    .card-title{
+      margin:0;
+      font-weight: 950;
+      letter-spacing:.3px;
+      font-size: 13px;
+      line-height: 1.15;
+    }
+    .card-sub{
+      margin:0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+    .card-date{
+      margin:0;
+      color: rgba(255,255,255,.62);
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+
+    @media (max-width: 360px){
+      .wrap{ padding:16px; }
+      .albums{ gap:10px; }
+      .tabs{ gap:8px; }
+      .tab{ padding:11px 8px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+
+      <!-- Sticky header + tabs -->
+      <div class="topbar" role="banner">
+        <div class="head-row">
+          <h1>LEE SUHYUN</h1>
+          <a class="btn" href="akmu.html#profile">← Back</a>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="LEE SUHYUN tabs">
+          <button class="tab" id="tab-profile" role="tab" aria-selected="true" aria-controls="panel-profile" type="button">
+            PROFILE
+          </button>
+          <button class="tab" id="tab-discography" role="tab" aria-selected="false" aria-controls="panel-discography" type="button">
+            DISCOGRAPHY
+          </button>
+        </div>
+      </div>
+
+      <!-- PROFILE panel -->
+      <section class="panel is-active" id="panel-profile" role="tabpanel" aria-labelledby="tab-profile">
+        <div class="profile-card">
+          <img src="AKMU_images/su.jpg" alt="LEE SUHYUN" loading="lazy" />
+          <div class="profile-body">
+            <div class="meta-line"><span>DEBUT</span>10.16.2020</div>
+            <div class="meta-line"><span>DOB</span>05.04.1999</div>
+
+            <div class="link-row">
+              <a class="ig" href="https://www.instagram.com/akmu_suhyun/" target="_blank" rel="noopener">
+                Instagram <small>↗</small>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DISCOGRAPHY panel -->
+      <section class="panel" id="panel-discography" role="tabpanel" aria-labelledby="tab-discography">
+        <div class="albums" aria-label="LEE SUHYUN discography">
+          <a class="card" href="alien.html" aria-label="ALIEN page">
+            <img src="AKMU_images/su_alb1.jpg" alt="ALIEN cover" loading="lazy" />
+            <div class="card-body">
+              <p class="card-title">ALIEN</p>
+              <p class="card-sub">1st SINGLE ALBUM</p>
+              <p class="card-date">10-16-2020</p>
+            </div>
+          </a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Tabs + hash routing (supports #profile / #discography)
+    const tabs = [
+      { key: "profile", el: document.getElementById("tab-profile"), panel: document.getElementById("panel-profile") },
+      { key: "discography", el: document.getElementById("tab-discography"), panel: document.getElementById("panel-discography") }
+    ];
+
+    function setTab(activeKey, opts = { updateHash: true }) {
+      for (const t of tabs) {
+        const isOn = t.key === activeKey;
+        t.el.setAttribute("aria-selected", String(isOn));
+        t.panel.classList.toggle("is-active", isOn);
+      }
+
+      // Update URL hash so you can link directly to a tab
+      if (opts.updateHash) {
+        history.replaceState(null, "", "#" + activeKey);
+      }
+
+      const active = tabs.find(t => t.key === activeKey);
+      if (active) active.el.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Clicking tabs
+    tabs.forEach(t => t.el.addEventListener("click", () => setTab(t.key)));
+
+    // Open correct tab from hash on load / hash change
+    function tabFromHash() {
+      const key = (location.hash || "#profile").replace("#", "").toLowerCase();
+      if (tabs.some(t => t.key === key)) setTab(key, { updateHash: false });
+      else setTab("profile", { updateHash: false });
+    }
+
+    tabFromHash();
+    window.addEventListener("hashchange", tabFromHash);
+  </script>
+</body>
+</html>
