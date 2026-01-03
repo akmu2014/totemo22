@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WINTER • AKMU</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.40);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 980px;
+      --card:#111;
+    }
+
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{ width:100%; max-width:var(--maxw); }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(24px, 4.6vw, 40px);
+      letter-spacing:.4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .section{ padding:14px; display:grid; gap:12px; }
+
+    /* YouTube (custom thumbnail) */
+    .yt{
+      border-radius: 16px;
+      border:1px solid var(--border);
+      overflow:hidden;
+      background:#000;
+    }
+    .yt-inner{
+      position:relative;
+      width:100%;
+      aspect-ratio: 16 / 9;
+      background:#000;
+    }
+    .yt-embed{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:none;
+    }
+
+    .yt-cover{
+      position:absolute;
+      inset:0;
+      border:0;
+      padding:0;
+      margin:0;
+      width:100%;
+      height:100%;
+      cursor:pointer;
+      background:#000;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .yt-cover:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:-3px;
+    }
+
+    .yt-thumb{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+    }
+
+    .yt-overlay{
+      position:absolute;
+      inset:0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.15),
+        rgba(0,0,0,.70)
+      );
+    }
+    .yt-ui{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:14px;
+      color:rgba(255,255,255,.92);
+    }
+    .play{
+      border:1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.14);
+      color:var(--fg);
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .yt-text{
+      color:rgba(255,255,255,.86);
+      font-size:14px;
+    }
+
+    /* Album image + meta */
+    .album{
+      display:grid;
+      gap:12px;
+    }
+    .album img{
+      width:100%;
+      max-width: 360px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background:#0b0b0b;
+      display:block;
+    }
+    .meta{
+      display:grid;
+      gap:6px;
+    }
+    .title{
+      margin:0;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing:.3px;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .date{
+      margin:0;
+      color: rgba(255,255,255,.62);
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+
+    .text{
+      margin:0;
+      color: rgba(255,255,255,.88);
+      line-height:1.55;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    /* Track list — consistent clickable style */
+    .h2{
+      margin:6px 0 12px;
+      font-size:16px;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+    .tracks{
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:10px;
+    }
+    .track{
+      display:block;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.9);
+      font-size:14px;
+      letter-spacing:.2px;
+      text-decoration:none;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+    .track:hover{
+      transform: translateY(-1px);
+      border-color: var(--border2);
+      background: rgba(255,255,255,.08);
+    }
+
+    @media (min-width: 720px){
+      .album{ grid-template-columns: 360px 1fr; align-items:start; }
+      .album img{ max-width: 360px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+
+      <header>
+        <h1>WINTER</h1>
+        <a class="btn" href="akmu.html#discography">← Back</a>
+      </header>
+
+      <article class="card">
+        <div class="section">
+
+          <!-- YouTube (click-to-play) -->
+          <div class="yt" aria-label="YouTube video">
+            <div class="yt-inner">
+              <iframe
+                class="yt-embed"
+                id="yt"
+                title="AKMU - '오랜 날 오랜 밤 (LAST GOODBYE)' M/V (YouTube)"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+              </iframe>
+
+              <button class="yt-cover" id="ytCover" type="button" aria-label="Play YouTube video">
+                <img class="yt-thumb" src="AKMU_images/youtube7.jpg" alt="Play YouTube video" loading="lazy" />
+                <span class="yt-overlay"></span>
+                <span class="yt-ui">
+                  <span class="play">▶ Play video</span>
+                  <span class="yt-text">YouTube • AKMU - ‘오랜 날 오랜 밤 (LAST GOODBYE)’</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Album info -->
+          <div class="album">
+            <img src="AKMU_images/album7.jpg" alt="WINTER album cover" loading="lazy" />
+
+            <div class="meta">
+              <p class="title">WINTER</p>
+              <p class="sub">2nd FULL ALBUM</p>
+              <p class="date">01-03-2017</p>
+
+              <p class="text">Following 사춘기 상 (SPRING), released last May, AKMU returns in January 2017 with their full album 사춘기 하 (WINTER)—a New Year’s gift that completes their adolescence series.
+
+While SPRING captured moments of emotional change that can arrive at any stage of life, WINTER reflects deeper, maturing emotions shaped by the passage of time. Written like pages from a diary, the album delivers heartfelt and warm stories through eight tracks arranged chronologically, tracing life from birth to reflection.
+
+As the final chapter of AKMU’s adolescence, 사춘기 하 (WINTER) offers quiet comfort—wrapping listeners in warmth and inviting them to revisit memories of their own youth, even in the coldest season.</p>
+
+              <div>
+                <h2 class="h2">Track List</h2>
+                <ul class="tracks">
+                  <li><a class="track" href="https://music.apple.com/us/song/live/1191276300" target="_blank" rel="noopener">Live</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/reality/1191276301" target="_blank" rel="noopener">Reality</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/last-goodbye/1191276302" target="_blank" rel="noopener">Last Goodbye</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/play-ugly/1191276303" target="_blank" rel="noopener">Play Ugly</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/chocolady/1191276304" target="_blank" rel="noopener">CHOCOLADY</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/you-know-me/1191276305" target="_blank" rel="noopener">YOU KNOW ME</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/way-back-home/1191276306" target="_blank" rel="noopener">Way Back Home</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/will-last-forever/1191276307" target="_blank" rel="noopener">Will Last Forever</a></li>
+                </ul>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <script>
+    // Click-to-play YouTube embed (loads only when user clicks)
+    // Source link: https://youtu.be/wEQpfil0IYA
+    const VIDEO_ID = "wEQpfil0IYA";
+    const cover = document.getElementById("ytCover");
+    const iframe = document.getElementById("yt");
+
+    function play() {
+      iframe.src = "https://www.youtube-nocookie.com/embed/" + VIDEO_ID + "?autoplay=1&rel=0";
+      iframe.style.display = "block";
+      cover.style.display = "none";
+    }
+
+    cover.addEventListener("click", play);
+  </script>
+</body>
+</html>
