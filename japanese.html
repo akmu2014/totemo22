@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Japanese</title>
+  <meta property="og:image" content="https://akmu2014.github.io/totemo22/Japanese_images/train.jpg" />
+  <style>
+    :root {
+      --bg: #000;
+      --fg: #fff;
+      --muted: rgba(255, 255, 255, 0.72);
+      --card-border: rgba(255, 255, 255, 0.16);
+      --card-border-hover: rgba(255, 255, 255, 0.38);
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+      --radius: 18px;
+      --maxw: 980px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .wrap {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--maxw);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    header {
+      text-align: left;
+    }
+
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: clamp(28px, 4.5vw, 44px);
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(14px, 2.4vw, 16px);
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--fg);
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.04);
+      transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+      box-shadow: var(--shadow);
+    }
+
+    .back-btn:hover {
+      border-color: var(--card-border-hover);
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .back-btn:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.55);
+      outline-offset: 3px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 720px) {
+      .grid { gap: 18px; }
+    }
+
+    .tile {
+      position: relative;
+      display: block;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow);
+      background: #111;
+      text-decoration: none;
+      color: var(--fg);
+      transform: translateZ(0);
+      transition: border-color 180ms ease, transform 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tile:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.55);
+      outline-offset: 3px;
+    }
+
+    .tile:hover {
+      border-color: var(--card-border-hover);
+      transform: translateY(-2px);
+    }
+
+    .media {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      display: block;
+      object-fit: cover;
+      filter: saturate(1.05) contrast(1.02);
+    }
+
+    .label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 12px 12px 11px 12px;
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.72),
+        rgba(0,0,0,0.18),
+        rgba(0,0,0,0)
+      );
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .label-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container" aria-label="Japanese page">
+      <div class="topbar">
+        <header>
+          <h1>Japanese</h1>
+          <p class="subtitle">Choose a topic</p>
+        </header>
+
+        <a class="back-btn" href="https://monumentvibe.com/" aria-label="Go back to Monument Vibe">
+          ← Back
+        </a>
+      </div>
+
+      <section class="grid" aria-label="Japanese selection grid">
+        <a class="tile" href="tokyo-trains.html" aria-label="Go to Tokyo Trains page">
+          <img
+            class="media"
+            src="https://akmu2014.github.io/totemo22/Japanese_images/train.jpg"
+            alt="Tokyo Trains"
+            loading="lazy"
+          />
+          <div class="label">
+            <p class="label-title">Tokyo Trains</p>
+          </div>
+        </a>
+
+        <a class="tile" href="pokemon.html" aria-label="Go to Pokemon page">
+          <img
+            class="media"
+            src="https://akmu2014.github.io/totemo22/Japanese_images/pokemon.jpg"
+            alt="Pokemon"
+            loading="lazy"
+          />
+          <div class="label">
+            <p class="label-title">Pokemon</p>
+          </div>
+        </a>
+      </section>
+
+      <footer>
+        <span>© <span id="y"></span></span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
