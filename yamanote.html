@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>山手線</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --text: #d9deea;
+      --active: #ffffff;
+      --border: #2b3244;
+      --ruby: #adc0ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+      background: linear-gradient(180deg, #0c0e13 0%, #121621 100%);
+      color: var(--text);
+    }
+
+    .back-link {
+      position: fixed;
+      top: 18px;
+      left: 20px;
+      z-index: 1000;
+      color: #f2f4f8;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      opacity: 0.92;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(3px);
+    }
+
+    .back-link:hover {
+      opacity: 1;
+      transform: translateX(-1px);
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      padding-top: 72px;
+    }
+
+    .panel {
+      background: rgba(23, 26, 33, 0.94);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+    }
+
+    .song-title {
+      text-align: center;
+      font-size: 34px;
+      font-weight: 700;
+      margin: 0 0 18px 0;
+      line-height: 1.4;
+    }
+
+    .song-title rt {
+      font-size: 0.45em;
+      color: var(--ruby);
+    }
+
+    audio {
+      width: 100%;
+      margin-bottom: 22px;
+      border-radius: 14px;
+      background: #000;
+    }
+
+    .lyrics {
+      max-height: 72vh;
+      overflow: auto;
+      scroll-behavior: smooth;
+      padding-right: 6px;
+    }
+
+    .line {
+      margin: 8px 0;
+      padding: 14px 16px;
+      border-radius: 18px;
+      color: #7f8aa4;
+      transition: 180ms ease;
+      font-size: 30px;
+      line-height: 2.0;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .line.active {
+      color: var(--active);
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.08);
+      transform: scale(1.01);
+    }
+
+    .line:hover {
+      background: rgba(255,255,255,0.03);
+    }
+
+    ruby rt {
+      font-size: 0.48em;
+      color: var(--ruby);
+    }
+
+    @media (max-width: 900px) {
+      .song-title { font-size: 28px; }
+      .line { font-size: 24px; }
+      .back-link {
+        top: 14px;
+        left: 14px;
+        font-size: 16px;
+      }
+      .app {
+        padding-top: 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="back-link" href="../tokyo-trains.html">← Back</a>
+
+  <div class="app">
+    <section class="panel">
+      <h1 class="song-title">
+        <ruby>山手<rt>やまのて</rt></ruby><ruby>線<rt>せん</rt></ruby>
+      </h1>
+
+      <audio id="player" controls></audio>
+
+      <div id="lyrics" class="lyrics"></div>
+    </section>
+  </div>
+
+  <script>
+    const lyricsData =[
+  {
+    "time": 0.47,
+    "html": "<ruby>東京<rt>とうきょう</rt></ruby>"
+  },
+  {
+    "time": 1.15,
+    "html": "<ruby>神田<rt>かんだ</rt></ruby>"
+  },
+  {
+    "time": 2.5,
+    "html": "<ruby>秋葉原<rt>あきはばら</rt></ruby>"
+  },
+  {
+    "time": 3.83,
+    "html": "<ruby>御徒町<rt>おかちまち</rt></ruby>"
+  },
+  {
+    "time": 5.06,
+    "html": "<ruby>上野<rt>うえの</rt></ruby>"
+  },
+  {
+    "time": 5.99,
+    "html": "<ruby>鶯谷<rt>うぐいすだに</rt></ruby>"
+  },
+  {
+    "time": 7.71,
+    "html": "<ruby>日暮里<rt>にっぽり</rt></ruby>"
+  },
+  {
+    "time": 8.44,
+    "html": "<ruby>西日暮里<rt>にしにっぽり</rt></ruby>"
+  },
+  {
+    "time": 10.59,
+    "html": "<ruby>田端<rt>たばた</rt></ruby>"
+  },
+  {
+    "time": 11.22,
+    "html": "<ruby>駒込<rt>こまごめ</rt></ruby>"
+  },
+  {
+    "time": 11.94,
+    "html": "<ruby>巣鴨<rt>すがも</rt></ruby>"
+  },
+  {
+    "time": 13.18,
+    "html": "<ruby>大塚<rt>おおつか</rt></ruby>"
+  },
+  {
+    "time": 14.46,
+    "html": "<ruby>池袋<rt>いけぶくろ</rt></ruby>"
+  },
+  {
+    "time": 15.91,
+    "html": "<ruby>目白<rt>めじろ</rt></ruby>"
+  },
+  {
+    "time": 17,
+    "html": "<ruby>高田馬場<rt>たかだのばば</rt></ruby>"
+  },
+  {
+    "time": 18.5,
+    "html": "<ruby>新大久保<rt>しんおおくぼ</rt></ruby>"
+  },
+  {
+    "time": 21.39,
+    "html": "<ruby>新宿<rt>しんじゅく</rt></ruby>"
+  },
+  {
+    "time": 22.52,
+    "html": "<ruby>代々木<rt>よよぎ</rt></ruby>"
+  },
+  {
+    "time": 23.52,
+    "html": "<ruby>原宿<rt>はらじゅく</rt></ruby>"
+  },
+  {
+    "time": 24.58,
+    "html": "<ruby>渋谷<rt>しぶや</rt></ruby>"
+  },
+  {
+    "time": 26.33,
+    "html": "<ruby>恵比寿<rt>えびす</rt></ruby>"
+  },
+  {
+    "time": 27.16,
+    "html": "<ruby>目黒<rt>めぐろ</rt></ruby>"
+  },
+  {
+    "time": 28.06,
+    "html": "<ruby>五反田<rt>ごたんだ</rt></ruby>"
+  },
+  {
+    "time": 29.98,
+    "html": "<ruby>大崎<rt>おおさき</rt></ruby>"
+  },
+  {
+    "time": 31.91,
+    "html": "<ruby>品川<rt>しながわ</rt></ruby>"
+  },
+  {
+    "time": 33.24,
+    "html": "<ruby>高輪<rt>たかなわ</rt></ruby>ゲートウェイ"
+  },
+  {
+    "time": 37.28,
+    "html": "<ruby>浜松町<rt>はままつちょう</rt></ruby>"
+  },
+  {
+    "time": 38.48,
+    "html": "<ruby>新橋<rt>しんばし</rt></ruby>"
+  },
+  {
+    "time": 39.89,
+    "html": "<ruby>有楽町<rt>ゆうらくちょう</rt></ruby>"
+  }
+];
+
+    const player = document.getElementById('player');
+    const lyrics = document.getElementById('lyrics');
+    const defaultAudioPath = './yamanote.mp3';
+
+    function renderLyrics() {
+      lyrics.innerHTML = '';
+      lyricsData.forEach((line) => {
+        const div = document.createElement('div');
+        div.className = 'line';
+        div.innerHTML = line.html;
+        div.addEventListener('click', () => {
+          if (line.time != null) player.currentTime = line.time;
+        });
+        lyrics.appendChild(div);
+      });
+      refreshActive();
+    }
+
+    function refreshActive() {
+      const t = player.currentTime || 0;
+      const nodes = [...document.querySelectorAll('.line')];
+      let activeIndex = -1;
+
+      for (let i = 0; i < lyricsData.length; i++) {
+        const start = lyricsData[i].time;
+        const next = i < lyricsData.length - 1 ? lyricsData[i + 1].time : Infinity;
+        if (t >= start && t < next) {
+          activeIndex = i;
+          break;
+        }
+      }
+
+      nodes.forEach((node, i) => node.classList.toggle('active', i === activeIndex));
+
+      const active = nodes[activeIndex];
+      if (active) {
+        active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    }
+
+    player.addEventListener('timeupdate', refreshActive);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!player.src) return;
+        if (player.paused) player.play();
+        else player.pause();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        player.currentTime = Math.max(0, player.currentTime - 2);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        player.currentTime = Math.min(player.duration || Infinity, player.currentTime + 2);
+      }
+    });
+
+    renderLyrics();
+    player.src = defaultAudioPath;
+    player.load();
+  </script>
+</body>
+</html>
