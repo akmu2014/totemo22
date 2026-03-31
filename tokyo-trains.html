@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tokyo Trains</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --tile-bg: #0f0f0f;
+      --tile-border: #2a2a2a;
+      --tile-hover: #181818;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 760px;
+      text-align: center;
+      position: relative;
+    }
+
+    .back-link {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      transition: opacity 0.18s ease;
+    }
+
+    .back-link:hover {
+      opacity: 0.8;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding-top: 28px;
+    }
+
+    .subtitle {
+      margin: 0 0 36px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .tile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 110px;
+      padding: 24px;
+      border-radius: 22px;
+      background: var(--tile-bg);
+      border: 1px solid var(--tile-border);
+      color: var(--text);
+      text-decoration: none;
+      box-shadow: var(--shadow);
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .tile:hover {
+      background: var(--tile-hover);
+      border-color: #4a4a4a;
+      transform: translateY(-2px);
+    }
+
+    .tile.disabled {
+      cursor: default;
+      opacity: 0.92;
+    }
+
+    .tile.disabled:hover {
+      transform: none;
+      background: var(--tile-bg);
+      border-color: var(--tile-border);
+    }
+
+    .line-name {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.1;
+    }
+
+    .line-name ruby {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      ruby-align: center;
+    }
+
+    .line-name rt {
+      font-size: 0.7em;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: #7f7f7f;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 640px) {
+      .tile {
+        min-height: 96px;
+        border-radius: 18px;
+        padding: 20px;
+      }
+
+      .back-link {
+        font-size: 0.95rem;
+      }
+
+      h1 {
+        padding-top: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-link" href="japanese.html">← Back</a>
+
+    <h1>Tokyo Trains</h1>
+    <p class="subtitle">Tap a line to continue</p>
+
+    <section class="tiles">
+      <a class="tile" href="yamanote.html">
+        <div class="line-name">
+          <ruby>山手線<rt>やまのてせん</rt></ruby>
+        </div>
+      </a>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>銀座線<rt>ぎんざせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>丸ノ内線<rt>まるのうちせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>日比谷線<rt>ひびやせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>東西線<rt>とうざいせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>千代田線<rt>ちよだせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>有楽町線<rt>ゆうらくちょうせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>半蔵門線<rt>はんぞうもんせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>南北線<rt>なんぼくせん</rt></ruby>
+        </div>
+      </div>
+
+      <div class="tile disabled">
+        <div class="line-name">
+          <ruby>副都心線<rt>ふくとしんせん</rt></ruby>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">monument vibe style landing page</div>
+  </main>
+</body>
+</html>
