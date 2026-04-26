@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>2-for-2 Circle Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #faf8ef;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      color: #6f6256;
+      overflow: hidden;
+    }
+
+    .game-wrap {
+      width: min(100vw, 520px);
+      padding: 14px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      min-height: 18px;
+    }
+
+    .scores {
+      display: flex;
+      gap: 8px;
+    }
+
+    .score-box {
+      background: #bbada0;
+      color: white;
+      min-width: 78px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .score-label {
+      font-size: 10px;
+      color: #eee4da;
+      margin-bottom: 3px;
+    }
+
+    .score-number {
+      font-size: 18px;
+    }
+
+    #board {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #bba98f;
+      border-radius: 16px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 10px;
+      user-select: none;
+    }
+
+    .cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .circle {
+      width: 88%;
+      height: 88%;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(20px, 6vw, 32px);
+      font-weight: 800;
+      box-shadow: inset 0 -4px rgba(0, 0, 0, 0.12);
+      transition: transform 0.08s ease;
+    }
+
+    .circle.selected {
+      outline: 5px solid white;
+      transform: scale(0.94);
+    }
+
+    svg#lineLayer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .cell {
+      z-index: 2;
+    }
+
+    .buttons {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 12px;
+      background: #6f6256;
+      color: white;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.35;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 420px) {
+      .top {
+        flex-direction: column;
+      }
+
+      .scores {
+        width: 100%;
+      }
+
+      .score-box {
+        flex: 1;
+      }
+
+      h1 {
+        font-size: 23px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-wrap">
+    <div class="top">
+      <div>
+        <h1>2-for-2 Circle Game</h1>
+        <div id="preview" class="subtitle">Drag a line through matching circles</div>
+      </div>
+
+      <div class="scores">
+        <div class="score-box">
+          <div class="score-label">SCORE</div>
+          <div id="score" class="score-number">0</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">BEST</div>
+          <div id="best" class="score-number">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="board">
+      <svg id="lineLayer"></svg>
+    </div>
+
+    <div class="buttons">
+      <button id="newGameBtn">New Game</button>
+    </div>
+
+    <div class="hint">
+      Connect same-number circles in a continuous line. Empty spaces are filled by gravity. New circles can be 2, 4, or sometimes 8.
+    </div>
+  </div>
+
+  <script>
+    const GRID_SIZE = 5;
+
+    // Beginning board: mostly 2s, some 4s
+    const START_VALUES = [2, 2, 2, 2, 2, 2, 2, 4, 4];
+
+    // Refill: 2 and 4 same chance, 8 less chance
+    // 2 = 40%, 4 = 40%, 8 = 20%
+    const REFILL_VALUES = [2, 2, 4, 4, 8];
+
+    const COLORS = {
+      2: "#e53935",     // red
+      4: "#f4c20d",     // yellow
+      8: "#1e88e5",     // blue
+      16: "#87ceeb",    // sky blue
+      32: "#8b4513",    // brown
+      64: "#fb8c00",    // orange
+      128: "#ff69b4",   // pink
+      256: "#43a047",   // green
+      512: "#6d4c41",
+      1024: "#546e7a",
+      2048: "#212121"
+    };
+
+    const board = document.getElementById("board");
+    const lineLayer = document.getElementById("lineLayer");
+    const scoreEl = document.getElementById("score");
+    const bestEl = document.getElementById("best");
+    const previewEl = document.getElementById("preview");
+    const newGameBtn = document.getElementById("newGameBtn");
+
+    let grid = [];
+    let selected = [];
+    let selectedValue = null;
+    let dragging = false;
+    let score = 0;
+    let best = Number(localStorage.getItem("twoForTwoBest") || 0);
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function randomStartValue() {
+      return randomChoice(START_VALUES);
+    }
+
+    function randomRefillValue() {
+      return randomChoice(REFILL_VALUES);
+    }
+
+    function makeNewGrid() {
+      return Array.from({ length: GRID_SIZE }, () =>
+        Array.from({ length: GRID_SIZE }, () => randomStartValue())
+      );
+    }
+
+    function mergeValue(baseValue, count) {
+      const upgrades = Math.floor(Math.log2(count));
+      return baseValue * Math.pow(2, upgrades);
+    }
+
+    function currentPreviewValue() {
+      if (selected.length < 2 || selectedValue === null) return null;
+      return mergeValue(selectedValue, selected.length);
+    }
+
+    function areAdjacent(a, b) {
+      const dr = Math.abs(a.r - b.r);
+      const dc = Math.abs(a.c - b.c);
+      return dr <= 1 && dc <= 1 && !(dr === 0 && dc === 0);
+    }
+
+    function sameCell(a, b) {
+      return a && b && a.r === b.r && a.c === b.c;
+    }
+
+    function cellInSelected(cell) {
+      return selected.some(item => sameCell(item, cell));
+    }
+
+    function getCellElement(r, c) {
+      return board.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+    }
+
+    function getCellFromPoint(clientX, clientY) {
+      const el = document.elementFromPoint(clientX, clientY);
+      if (!el) return null;
+
+      const cell = el.closest(".cell");
+      if (!cell || !board.contains(cell)) return null;
+
+      return {
+        r: Number(cell.dataset.r),
+        c: Number(cell.dataset.c)
+      };
+    }
+
+    function updatePreviewText() {
+      const preview = currentPreviewValue();
+
+      if (preview === null) {
+        previewEl.textContent = "Drag a line through matching circles";
+      } else {
+        previewEl.textContent = `Result if released now: ${preview}`;
+      }
+    }
+
+    function drawLine() {
+      lineLayer.innerHTML = "";
+
+      if (selected.length < 2) return;
+
+      const boardRect = board.getBoundingClientRect();
+      const points = selected.map(cell => {
+        const el = getCellElement(cell.r, cell.c);
+        const rect = el.getBoundingClientRect();
+        const x = rect.left + rect.width / 2 - boardRect.left;
+        const y = rect.top + rect.height / 2 - boardRect.top;
+        return `${x},${y}`;
+      }).join(" ");
+
+      const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+      polyline.setAttribute("points", points);
+      polyline.setAttribute("fill", "none");
+      polyline.setAttribute("stroke", "white");
+      polyline.setAttribute("stroke-width", "10");
+      polyline.setAttribute("stroke-linecap", "round");
+      polyline.setAttribute("stroke-linejoin", "round");
+
+      lineLayer.appendChild(polyline);
+    }
+
+    function render() {
+      board.querySelectorAll(".cell").forEach(el => el.remove());
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const value = grid[r][c];
+
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+
+          const circle = document.createElement("div");
+          circle.className = "circle";
+          circle.textContent = value;
+          circle.style.background = COLORS[value] || "#2c3e50";
+
+          if (cellInSelected({ r, c })) {
+            circle.classList.add("selected");
+          }
+
+          cell.appendChild(circle);
+          board.appendChild(cell);
+        }
+      }
+
+      scoreEl.textContent = score;
+      bestEl.textContent = best;
+
+      updatePreviewText();
+      requestAnimationFrame(drawLine);
+    }
+
+    function applyGravityAndFill() {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        const existing = [];
+
+        for (let r = GRID_SIZE - 1; r >= 0; r--) {
+          if (grid[r][c] !== null) {
+            existing.push(grid[r][c]);
+          }
+        }
+
+        let r = GRID_SIZE - 1;
+
+        for (const value of existing) {
+          grid[r][c] = value;
+          r--;
+        }
+
+        while (r >= 0) {
+          grid[r][c] = randomRefillValue();
+          r--;
+        }
+      }
+    }
+
+    function mergeSelected() {
+      if (selected.length < 2) return;
+
+      const newValue = mergeValue(selectedValue, selected.length);
+      const target = selected[selected.length - 1];
+
+      for (const cell of selected) {
+        grid[cell.r][cell.c] = null;
+      }
+
+      grid[target.r][target.c] = newValue;
+
+      score += newValue;
+
+      if (score > best) {
+        best = score;
+        localStorage.setItem("twoForTwoBest", String(best));
+      }
+
+      applyGravityAndFill();
+    }
+
+    function hasPossibleMove() {
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const value = grid[r][c];
+
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+
+              const nr = r + dr;
+              const nc = c + dc;
+
+              if (
+                nr >= 0 && nr < GRID_SIZE &&
+                nc >= 0 && nc < GRID_SIZE &&
+                grid[nr][nc] === value
+              ) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+
+      return false;
+    }
+
+    function startDrag(clientX, clientY) {
+      const cell = getCellFromPoint(clientX, clientY);
+      if (!cell) return;
+
+      selected = [cell];
+      selectedValue = grid[cell.r][cell.c];
+      dragging = true;
+      render();
+    }
+
+    function continueDrag(clientX, clientY) {
+      if (!dragging) return;
+
+      const cell = getCellFromPoint(clientX, clientY);
+      if (!cell) return;
+
+      // Backtracking
+      if (
+        selected.length >= 2 &&
+        sameCell(cell, selected[selected.length - 2])
+      ) {
+        selected.pop();
+        render();
+        return;
+      }
+
+      if (cellInSelected(cell)) return;
+
+      if (grid[cell.r][cell.c] !== selectedValue) return;
+
+      if (areAdjacent(selected[selected.length - 1], cell)) {
+        selected.push(cell);
+        render();
+      }
+    }
+
+    function endDrag() {
+      if (!dragging) return;
+
+      dragging = false;
+
+      if (selected.length >= 2) {
+        mergeSelected();
+      }
+
+      selected = [];
+      selectedValue = null;
+      render();
+
+      if (!hasPossibleMove()) {
+        setTimeout(() => {
+          alert(`No more moves!\nFinal score: ${score}`);
+          newGame();
+        }, 50);
+      }
+    }
+
+    function newGame() {
+      score = 0;
+      grid = makeNewGrid();
+      selected = [];
+      selectedValue = null;
+      dragging = false;
+      render();
+    }
+
+    // Pointer events work for mouse, touch, and stylus.
+    board.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      board.setPointerCapture(event.pointerId);
+      startDrag(event.clientX, event.clientY);
+    });
+
+    board.addEventListener("pointermove", event => {
+      event.preventDefault();
+      continueDrag(event.clientX, event.clientY);
+    });
+
+    board.addEventListener("pointerup", event => {
+      event.preventDefault();
+      endDrag();
+    });
+
+    board.addEventListener("pointercancel", event => {
+      event.preventDefault();
+      endDrag();
+    });
+
+    newGameBtn.addEventListener("click", newGame);
+
+    newGame();
+  </script>
+</body>
+</html>
