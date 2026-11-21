@@ -1,0 +1,606 @@
+<title>Food Fight Science</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one-column arcade cabinet — select grid, then arena with two health bars over a question card */
+:root{
+  --bg:#d9f2e6; --panel:#ffffff; --ink:#23192e; --muted:#5d5470;
+  --cherry:#e2384f; --mustard:#f5b829; --mint:#2fb884; --plum:#4a2c6b; --line:#23192e;
+  --display:'Bungee','Impact',system-ui,sans-serif;
+  --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;
+  background-image:radial-gradient(var(--ink) 0.8px,transparent 0.8px);background-size:22px 22px;background-color:var(--bg)}
+.wrap{max-width:860px;margin:0 auto;padding-block:18px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,7vw,48px);line-height:1;margin:0;text-wrap:balance;
+  color:var(--cherry);text-shadow:3px 3px 0 var(--ink)}
+h1 span{color:var(--mustard)}
+.sub{margin:6px 0 0;color:var(--muted);font-weight:700}
+.box{background:var(--panel);border:3px solid var(--line);border-radius:14px;box-shadow:5px 5px 0 var(--ink);padding:16px}
+.label{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--plum)}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--plum);outline-offset:3px}
+
+/* select */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;margin-top:12px}
+.pick{background:var(--panel);border:3px solid var(--line);border-radius:12px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .12s}
+.pick:hover{transform:translateY(-3px)}
+.pick .e{font-size:38px;line-height:1.1}
+.pick .n{font-weight:800;font-size:13px;text-align:center}
+.pick .t{font-size:11px;color:var(--muted);font-weight:700}
+.pick.on{background:var(--mustard);box-shadow:3px 3px 0 var(--ink)}
+.detail{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.detail .big{font-size:64px;line-height:1}
+.detail .info{flex:1;min-width:0}
+.detail h2{font-family:var(--display);font-weight:400;margin:0;font-size:24px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-weight:700;font-variant-numeric:tabular-nums}
+.btn{font-family:var(--display);font-size:18px;background:var(--cherry);color:#fff;border:3px solid var(--line);border-radius:12px;padding:12px 22px;box-shadow:4px 4px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.btn:disabled{background:#bbb;cursor:not-allowed}
+.btn.alt{background:var(--mint)}
+
+/* arena */
+.arena{position:relative;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:end}
+.fighter{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fighter.r{text-align:right}
+.fname{font-family:var(--display);font-size:15px;overflow-wrap:anywhere}
+.hp{height:20px;border:3px solid var(--line);border-radius:8px;background:#f2e3e6;overflow:hidden}
+.hp i{display:block;height:100%;background:var(--mint);transition:width .5s ease,background .3s}
+.fighter.r .hp i{margin-left:auto}
+.hpnum{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+.sprite{font-size:clamp(64px,18vw,110px);line-height:1;position:relative;user-select:none}
+.fighter.r .sprite{transform:scaleX(-1)}
+.vs{font-family:var(--display);font-size:22px;color:var(--cherry);padding-bottom:30px}
+.hit{animation:shake .4s}
+@keyframes shake{0%,100%{translate:0}20%{translate:-10px}40%{translate:10px}60%{translate:-6px}80%{translate:6px}}
+.lunge-l{animation:lungeL .35s}.lunge-r{animation:lungeR .35s}
+@keyframes lungeL{50%{translate:40px}}@keyframes lungeR{50%{translate:-40px}}
+.pop{position:absolute;left:50%;top:0;font-family:var(--display);font-size:28px;color:var(--cherry);text-shadow:2px 2px 0 var(--ink);
+  animation:pop 1s forwards;pointer-events:none;white-space:nowrap}
+.fighter.r .pop{transform:scaleX(-1)}
+@keyframes pop{from{opacity:1;translate:-50% 0}to{opacity:0;translate:-50% -60px}}
+.log{min-height:24px;font-weight:800;text-align:center}
+.stage{position:relative;display:inline-flex;align-items:flex-end;align-self:flex-start}
+.fighter.r .stage{align-self:flex-end;transform:scaleX(-1)}
+.fighter.r .sprite{transform:none}
+.fighter.r .pop{transform:scaleX(-1)}
+.sword{width:clamp(26px,7vw,40px);height:auto;margin-left:-6px;margin-bottom:18%;transform-origin:50% 88%;rotate:-25deg;filter:drop-shadow(2px 2px 0 var(--ink))}
+.swing{animation:swing .45s ease-out}
+@keyframes swing{0%{rotate:-25deg}25%{rotate:-60deg}55%{rotate:110deg;translate:30px 0}100%{rotate:-25deg}}
+.spark{position:absolute;left:-10px;top:30%;font-size:34px;color:var(--mustard);text-shadow:2px 2px 0 var(--ink);animation:spark .5s forwards;pointer-events:none}
+@keyframes spark{from{opacity:1;scale:.4}to{opacity:0;scale:1.6}}
+.sound{font-family:var(--display);font-size:13px;background:var(--panel);border:3px solid var(--line);border-radius:999px;padding:6px 14px;box-shadow:3px 3px 0 var(--ink)}
+.headrow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+
+.q{font-size:19px;font-weight:800;margin:8px 0 12px;text-wrap:balance}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:480px){.opts{grid-template-columns:1fr}}
+.opt{text-align:left;background:var(--panel);border:3px solid var(--line);border-radius:10px;padding:12px;font-weight:700}
+.opt:hover:not(:disabled){background:#fff4d6}
+.opt.ok{background:var(--mint);color:#fff}
+.opt.no{background:var(--cherry);color:#fff}
+.opt:disabled{cursor:default}
+.fact{margin-top:12px;font-weight:700;color:var(--plum)}
+.qbox.botturn{background:#efe6fa}
+.opt.botpick{outline:4px dashed var(--plum);outline-offset:2px}
+.fxlayer{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:visible}
+.fxp{position:absolute;line-height:1;pointer-events:none;white-space:nowrap;filter:drop-shadow(2px 2px 0 rgba(35,25,46,.45))}
+.streak{position:absolute;width:110px;height:7px;border-radius:4px;pointer-events:none}
+.stage.shielded::after{content:"";position:absolute;inset:-14px -8px;border-radius:50%;border:4px solid var(--plum);background:rgba(74,44,107,.12);animation:shieldIn .35s ease-out}
+@keyframes shieldIn{from{scale:.3;opacity:0}to{scale:1;opacity:1}}
+.savebox{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#fff4d6}
+.savebox .info{min-width:0}
+.savetxt{font-weight:800;font-size:17px;margin-top:4px}
+.btn.ghost{background:var(--panel);color:var(--ink)}
+.toprt{display:flex;gap:8px;align-items:center}
+.savebtn{font-family:var(--display);font-size:13px;background:var(--mint);color:#fff;border:2px solid var(--line);border-radius:999px;padding:4px 14px;box-shadow:2px 2px 0 var(--ink)}
+.savebtn.done{background:var(--plum)}
+.moves{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media (max-width:480px){.moves{grid-template-columns:1fr}}
+.move{text-align:left;background:var(--mustard);border:3px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:3px 3px 0 var(--ink);display:flex;flex-direction:column;gap:2px}
+.move:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.move .mn{font-family:var(--display);font-size:15px}
+.move .md{font-size:13px;font-weight:700;color:var(--ink)}
+.move.hot{grid-column:1/-1;background:var(--cherry);color:#fff}
+.move.hot .md{color:#fff}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-weight:800}
+.chip{background:var(--mustard);border:2px solid var(--line);border-radius:999px;padding:3px 12px;font-size:14px}
+.end{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.end .big{font-size:80px}
+.end h2{font-family:var(--display);font-weight:400;font-size:30px;margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="headrow"><h1>Food Fight <span>Science!</span></h1><button class="sound" id="soundBtn" aria-pressed="true">Sound: On</button></div>
+    <p class="sub">Pick your food. Answer science questions to attack. Wrong answers let your opponent strike!</p>
+  </header>
+
+  <!-- SELECT -->
+  <section id="continueBox" class="box savebox" hidden>
+    <div class="info"><div class="label">WELCOME BACK!</div><div class="savetxt" id="saveTxt"></div></div>
+    <div class="row"><button class="btn alt" id="continueBtn">Continue</button><button class="btn ghost" id="newGameBtn">New Game</button></div>
+  </section>
+  <section id="select" class="box">
+    <div class="detail" id="detail"></div>
+    <div class="grid" id="grid"></div>
+    <div style="margin-top:16px;display:flex;justify-content:flex-end">
+      <button class="btn" id="startBtn" disabled>Fight!</button>
+    </div>
+  </section>
+
+  <!-- BATTLE -->
+  <section id="battle" hidden>
+    <div class="box" style="display:flex;flex-direction:column;gap:12px">
+      <div class="topbar"><span class="label" id="roundLbl">ROUND 1</span><span class="toprt"><span class="chip" id="streak">Wins: 0</span><button class="savebtn" id="saveBtn">Save</button></span></div>
+      <div class="arena" id="arena"><div class="fxlayer" id="fx" aria-hidden="true"></div>
+        <div class="fighter">
+          <div class="fname" id="pName"></div>
+          <div class="hp"><i id="pBar"></i></div>
+          <div class="hpnum" id="pHp"></div>
+          <div class="stage"><div class="sprite" id="pSprite"></div><svg class="sword" id="pSword" viewBox="0 0 40 120" aria-hidden="true"><use href="#swordShape"/></svg></div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="fighter r">
+          <div class="fname" id="eName"></div>
+          <div class="hp"><i id="eBar"></i></div>
+          <div class="hpnum" id="eHp"></div>
+          <div class="stage"><div class="sprite" id="eSprite"></div><svg class="sword" id="eSword" viewBox="0 0 40 120" aria-hidden="true"><use href="#swordShape"/></svg></div>
+        </div>
+      </div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+        <g id="swordShape">
+          <path d="M20 2 L27 14 L27 82 L13 82 L13 14 Z" fill="#dfe6ee" stroke="#23192e" stroke-width="3" stroke-linejoin="round"/>
+          <line x1="20" y1="12" x2="20" y2="78" stroke="#9fb0c2" stroke-width="2"/>
+          <rect x="3" y="82" width="34" height="8" rx="3" fill="#f5b829" stroke="#23192e" stroke-width="3"/>
+          <rect x="15" y="90" width="10" height="20" rx="2" fill="#4a2c6b" stroke="#23192e" stroke-width="3"/>
+          <circle cx="20" cy="113" r="5" fill="#e2384f" stroke="#23192e" stroke-width="3"/>
+        </g></defs></svg>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="box qbox" id="qBox" style="margin-top:16px">
+      <div class="label" id="qTopic"></div>
+      <div class="q" id="qText"></div>
+      <div class="opts" id="opts"></div>
+      <div class="fact" id="fact" hidden></div>
+      <div id="movesWrap" hidden><div class="label" style="margin-top:14px">CHOOSE YOUR ATTACK</div><div class="moves" id="moves"></div></div>
+      <div style="margin-top:14px;display:flex;justify-content:flex-end" ><button class="btn alt" id="nextBtn" hidden>Next Question</button></div>
+    </div>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="box end" hidden>
+    <div class="big" id="endEmoji"></div>
+    <h2 id="endTitle"></h2>
+    <p id="endText" style="margin:0;font-weight:700"></p>
+    <div class="row">
+      <button class="btn" id="againBtn">Next Opponent</button>
+      <button class="btn alt" id="menuBtn">Choose New Food</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const FOODS=[
+ ["🍕","Pizza Punch","Cheesy",110,18,"Cheese Lasso"],
+ ["🍔","Burger Brawler","Hearty",130,15,"Patty Slam"],
+ ["🌭","Hot Dog Hero","Speedy",95,20,"Mustard Blast"],
+ ["🌮","Taco Titan","Spicy",100,19,"Salsa Storm"],
+ ["🍣","Sushi Samurai","Swift",90,21,"Wasabi Slice"],
+ ["🍩","Donut Dynamo","Sweet",105,17,"Sprinkle Spin"],
+ ["🍪","Cookie Crusher","Crunchy",100,18,"Chip Barrage"],
+ ["🧁","Cupcake Commander","Sweet",95,19,"Frosting Flood"],
+ ["🍦","Ice Cream Ice","Cold",100,18,"Brain Freeze"],
+ ["🍉","Watermelon Warrior","Juicy",140,14,"Seed Spitter"],
+ ["🍌","Banana Bandit","Slippery",95,20,"Peel Trip"],
+ ["🍎","Apple Ace","Crunchy",110,17,"Core Crash"],
+ ["🍓","Strawberry Striker","Sweet",90,21,"Berry Bomb"],
+ ["🍍","Pineapple Paladin","Spiky",125,16,"Spike Shield"],
+ ["🥕","Carrot Commando","Crunchy",105,18,"Root Rocket"],
+ ["🥦","Broccoli Bruiser","Healthy",135,15,"Floret Fury"],
+ ["🌽","Corn Crusader","Poppy",110,17,"Kernel Pop"],
+ ["🌶️","Chili Champion","Spicy",85,23,"Fire Breath"],
+ ["🥑","Avocado Avenger","Smooth",120,16,"Pit Throw"],
+ ["🧀","Cheese Champ","Cheesy",115,17,"Melt Down"],
+ ["🥐","Croissant Crusher","Flaky",100,18,"Butter Flake"],
+ ["🥨","Pretzel Punisher","Twisty",105,18,"Twist Lock"],
+ ["🍟","Fry Fighter","Salty",95,20,"Salt Shower"],
+ ["🍿","Popcorn Pounder","Poppy",90,21,"Kernel Burst"],
+ ["🥞","Pancake Puncher","Fluffy",125,16,"Syrup Splash"],
+ ["🍜","Ramen Ranger","Hot",115,17,"Noodle Whip"],
+ ["🥚","Egg Enforcer","Tough",100,18,"Yolk Splat"],
+ ["🍋","Lemon Lightning","Sour",90,21,"Sour Shock"],
+ ["🍇","Grape Gladiator","Juicy",105,18,"Grape Shot"],
+ ["🍫","Chocolate Chaos","Sweet",110,17,"Cocoa Crush"]
+].map(([e,n,t,hp,atk,move])=>({e,n,t,hp,atk,move}));
+
+const QS=[
+ ["Life Science","Which part of a plant makes food using sunlight?",["Leaves","Roots","Flowers","Seeds"],0,"Leaves use photosynthesis to turn sunlight, water and CO₂ into sugar."],
+ ["Life Science","What gas do humans breathe out?",["Carbon dioxide","Oxygen","Nitrogen","Helium"],0,"Our cells make carbon dioxide as waste, and we exhale it."],
+ ["Life Science","Which organ pumps blood through the body?",["Heart","Lungs","Liver","Brain"],0,"The heart beats about 100,000 times a day."],
+ ["Life Science","What do we call an animal that eats only plants?",["Herbivore","Carnivore","Omnivore","Decomposer"],0,"Cows, rabbits and deer are herbivores."],
+ ["Life Science","What is the basic unit of all living things?",["Cell","Atom","Organ","Tissue"],0,"Every living thing is made of one or more cells."],
+ ["Life Science","Which part of the plant carries water up from the roots?",["Xylem","Phloem","Petal","Pollen"],0,"Xylem carries water up; phloem carries food around."],
+ ["Life Science","Fungi and bacteria that break down dead things are called…",["Decomposers","Producers","Predators","Consumers"],0,"Decomposers return nutrients to the soil."],
+ ["Life Science","Which nutrient is the body's main source of quick energy?",["Carbohydrates","Vitamins","Water","Minerals"],0,"Bread, rice and fruit are rich in carbohydrates."],
+ ["Life Science","What is the change from caterpillar to butterfly called?",["Metamorphosis","Migration","Hibernation","Pollination"],0,"Butterflies go egg → larva → pupa → adult."],
+ ["Life Science","Where does digestion of food start?",["Mouth","Stomach","Small intestine","Liver"],0,"Saliva starts breaking down starch as you chew."],
+ ["Earth Science","What is the closest star to Earth?",["The Sun","Polaris","Sirius","The Moon"],0,"The Sun is a star about 150 million km away."],
+ ["Earth Science","What causes day and night?",["Earth spinning on its axis","Earth orbiting the Sun","The Moon's orbit","Clouds"],0,"One full spin takes about 24 hours."],
+ ["Earth Science","Which planet is known as the Red Planet?",["Mars","Venus","Jupiter","Saturn"],0,"Iron oxide (rust) in its soil makes Mars look red."],
+ ["Earth Science","What type of rock forms from cooled lava?",["Igneous","Sedimentary","Metamorphic","Fossil"],0,"Basalt and granite are igneous rocks."],
+ ["Earth Science","Water vapor turning into liquid droplets is called…",["Condensation","Evaporation","Precipitation","Melting"],0,"That's how clouds and dew form."],
+ ["Earth Science","Which is the largest planet in our solar system?",["Jupiter","Earth","Neptune","Mars"],0,"More than 1,000 Earths could fit inside Jupiter."],
+ ["Earth Science","What layer of Earth do we live on?",["Crust","Mantle","Outer core","Inner core"],0,"The crust is the thin, rocky outer layer."],
+ ["Earth Science","What tool measures air pressure?",["Barometer","Thermometer","Anemometer","Rain gauge"],0,"Falling air pressure often means stormy weather."],
+ ["Earth Science","How long does Earth take to orbit the Sun?",["About 365 days","About 24 hours","About 30 days","About 7 days"],0,"That's why we have leap years every 4 years."],
+ ["Earth Science","Wearing away of rock by wind and water is called…",["Erosion","Eruption","Evaporation","Freezing"],0,"Rivers carved the Grand Canyon through erosion."],
+ ["Physical Science","What are the three common states of matter?",["Solid, liquid, gas","Hot, warm, cold","Rock, water, air","Big, medium, small"],0,"Ice, water and steam are all H₂O."],
+ ["Physical Science","What force pulls objects toward Earth?",["Gravity","Friction","Magnetism","Wind"],0,"Gravity keeps the Moon in orbit too."],
+ ["Physical Science","At what temperature does water freeze (Celsius)?",["0 °C","100 °C","32 °C","−10 °C"],0,"0 °C equals 32 °F."],
+ ["Physical Science","Which material is a good conductor of electricity?",["Copper","Rubber","Wood","Plastic"],0,"That's why wires are made of copper."],
+ ["Physical Science","The force that slows down a sliding object is…",["Friction","Gravity","Inertia","Buoyancy"],0,"Rough surfaces create more friction."],
+ ["Physical Science","What does a magnet attract?",["Iron","Glass","Paper","Aluminum foil"],0,"Iron, nickel and cobalt are magnetic."],
+ ["Physical Science","Light bouncing off a mirror is called…",["Reflection","Refraction","Absorption","Vibration"],0,"Refraction is when light bends going through water."],
+ ["Physical Science","Sound is caused by…",["Vibrations","Light","Magnets","Heat"],0,"Sound travels as vibrations through air, water or solids."],
+ ["Physical Science","What is the chemical symbol for water?",["H₂O","CO₂","O₂","NaCl"],0,"Two hydrogen atoms + one oxygen atom."],
+ ["Physical Science","Mixing baking soda and vinegar is an example of a…",["Chemical change","Physical change","State change","Magnetic change"],0,"It makes a new substance: carbon dioxide gas!"],
+ ["Physical Science","Which simple machine is a ramp?",["Inclined plane","Lever","Pulley","Wheel and axle"],0,"Ramps make lifting things easier over a longer distance."],
+ ["Physical Science","What kind of energy does a moving object have?",["Kinetic","Potential","Chemical","Nuclear"],0,"A ball on a shelf has potential energy; falling, it's kinetic."],
+ ["Life Science","Bees help flowers make seeds by moving…",["Pollen","Nectar","Water","Leaves"],0,"This is called pollination."],
+ ["Life Science","How many bones are in an adult human body?",["206","100","300","52"],0,"Babies start with about 300; some fuse together."],
+ ["Earth Science","What gas makes up most of Earth's air?",["Nitrogen","Oxygen","Carbon dioxide","Hydrogen"],0,"Air is about 78% nitrogen and 21% oxygen."],
+ ["Physical Science","Food gives our bodies which kind of energy?",["Chemical","Electrical","Sound","Light"],0,"Our cells release the chemical energy stored in food."]
+];
+
+const $=id=>document.getElementById(id);
+
+/* ---- Sound (synthesized with Web Audio, no files) ---- */
+let ac=null, muted=false;
+try{muted=localStorage.getItem('ffs-muted')==='1'}catch(e){}
+function ctx(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(ac.state==='suspended')ac.resume();return ac}
+function tone(freq,dur,type='square',vol=.12,delay=0,slideTo){
+  const a=ctx();if(!a||muted)return;const t=a.currentTime+delay;
+  const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);
+  if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g).connect(a.destination);o.start(t);o.stop(t+dur+.02);
+}
+function noise(dur,vol=.25,delay=0,f1=800,f2=4000,type='bandpass'){
+  const a=ctx();if(!a||muted)return;const t=a.currentTime+delay;
+  const len=Math.floor(a.sampleRate*dur),buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const s=a.createBufferSource();s.buffer=buf;const f=a.createBiquadFilter();f.type=type;f.Q.value=1.2;
+  f.frequency.setValueAtTime(f1,t);f.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  const g=a.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  s.connect(f).connect(g).connect(a.destination);s.start(t);
+}
+const SFX={
+  pick:()=>tone(660,.08,'square',.08),
+  start:()=>{[392,523,659,784].forEach((f,i)=>tone(f,.12,'square',.1,i*.09))},
+  correct:()=>{tone(784,.1,'square',.1);tone(1175,.18,'square',.1,.09)},
+  wrong:()=>tone(180,.35,'sawtooth',.12,0,90),
+  swoosh:()=>noise(.25,.35,0,600,5000),
+  hit:()=>{noise(.15,.4,0,1200,200,'lowpass');tone(140,.15,'triangle',.25,0,60)},
+  clang:()=>{tone(1800,.25,'triangle',.12);tone(2400,.2,'triangle',.08,.01)},
+  crit:()=>{[523,784,1047].forEach((f,i)=>tone(f,.1,'square',.1,i*.06))},
+  beam:()=>{noise(.5,.3,0,300,2500,'lowpass')},
+  heal:()=>{[523,659,784,1047].forEach((f,i)=>tone(f,.15,'sine',.12,i*.07))},
+  shield:()=>{tone(300,.3,'triangle',.15,0,900);tone(900,.25,'sine',.08,.1)},
+  win:()=>{[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.16,'square',.1,i*.13))},
+  lose:()=>{[392,370,349,262].forEach((f,i)=>tone(f,.3,'sawtooth',.09,i*.25))}
+};
+function sfx(n){SFX[n]&&SFX[n]()}
+function setSoundBtn(){$('soundBtn').textContent='Sound: '+(muted?'Off':'On');$('soundBtn').setAttribute('aria-pressed',String(!muted))}
+$('soundBtn').onclick=()=>{muted=!muted;try{localStorage.setItem('ffs-muted',muted?'1':'0')}catch(e){}setSoundBtn();if(!muted)sfx('pick')};
+setSoundBtn();
+function spark(stage){const s=document.createElement('span');s.className='spark';s.textContent='✦';stage.appendChild(s);setTimeout(()=>s.remove(),500)}
+let chosen=null, P, E, wins=0, round=1, deck=[], busy=false;
+
+/* ---- Save / Continue (stored in this browser) ---- */
+const SAVE_KEY='food-fight-science-save-v1';
+let inFight=false;
+function saveGame(){
+  const data={chosen,wins,inFight,round,P:inFight?P:null,E:inFight?E:null,savedAt:Date.now()};
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(data));return true}catch(e){return false}
+}
+function loadSave(){
+  try{const d=JSON.parse(localStorage.getItem(SAVE_KEY));if(d&&typeof d.chosen==='number'&&FOODS[d.chosen])return d}catch(e){}
+  return null;
+}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY)}catch(e){}}
+function showContinue(){
+  const d=loadSave();
+  if(!d){$('continueBox').hidden=true;return}
+  const f=FOODS[d.chosen];
+  $('saveTxt').textContent=d.inFight&&d.P&&d.E
+    ?`${f.e} ${f.n} vs ${d.E.e} ${d.E.n} · Round ${d.round} · ${Math.max(0,d.P.cur)}/${d.P.hp} HP · Wins: ${d.wins}`
+    :`${f.e} ${f.n} · Wins in a row: ${d.wins}`;
+  $('continueBox').hidden=false;
+}
+function continueGame(){
+  const d=loadSave();if(!d)return;
+  chosen=d.chosen;wins=d.wins||0;
+  $('continueBox').hidden=true;
+  if(d.inFight&&d.P&&d.E){
+    P=d.P;E=d.E;round=d.round||1;inFight=true;
+    sfx('start');showBattle();
+    setShieldLook('p',!!P.shield);setShieldLook('e',!!E.shield);
+    updateBars();askQ();
+    $('log').textContent='Welcome back! Your turn.';
+  }else{
+    renderGrid();renderDetail();$('startBtn').disabled=false;startFight();
+  }
+}
+function showBattle(){
+  $('select').hidden=true;$('end').hidden=true;$('continueBox').hidden=true;$('battle').hidden=false;
+  $('pName').textContent=P.n;$('eName').textContent=E.n;
+  $('pSprite').textContent=P.e;$('eSprite').textContent=E.e;
+  $('streak').textContent='Wins: '+wins;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function flashSaved(ok){
+  const b=$('saveBtn');b.textContent=ok?'Saved!':'Can\'t save';b.classList.add('done');
+  clearTimeout(flashSaved.t);flashSaved.t=setTimeout(()=>{b.textContent='Save';b.classList.remove('done')},1500);
+}
+
+function renderGrid(){
+  $('grid').innerHTML='';
+  FOODS.forEach((f,i)=>{
+    const b=document.createElement('button');
+    b.className='pick'+(chosen===i?' on':''); b.id='pick'+i;
+    b.setAttribute('aria-label',f.n);
+    b.innerHTML=`<span class="e">${f.e}</span><span class="n">${f.n}</span><span class="t">${f.t}</span>`;
+    b.onclick=()=>{sfx('pick');chosen=i;renderGrid();renderDetail();$('startBtn').disabled=false};
+    $('grid').appendChild(b);
+  });
+}
+function renderDetail(){
+  if(chosen===null){$('detail').innerHTML=`<div class="info"><div class="label">STEP 1 · CHOOSE YOUR FIGHTER</div><h2>30 foods ready to rumble</h2></div>`;return}
+  const f=FOODS[chosen];
+  $('detail').innerHTML=`<div class="big">${f.e}</div><div class="info"><div class="label">YOUR FIGHTER</div><h2>${f.n}</h2>
+   <div class="stats"><span>❤️ HP ${f.hp}</span><span>⚔️ Attack ${f.atk}</span><span>✨ ${f.move}</span></div></div>`;
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function nextQ(){if(!deck.length)deck=shuffle(QS.map((_,i)=>i));return QS[deck.pop()]}
+
+function startFight(){
+  const f=FOODS[chosen];
+  sfx('start');
+  P={...f,cur:f.hp};
+  let ei; do{ei=Math.random()*30|0}while(ei===chosen);
+  const ef=FOODS[ei]; const boost=1+wins*0.1;
+  E={...ef,hp:Math.round(ef.hp*boost),cur:Math.round(ef.hp*boost),atk:Math.round(ef.atk*boost)};
+  round=1;inFight=true;
+  showBattle();
+  setShieldLook('p',false);setShieldLook('e',false);updateBars();askQ();
+  saveGame();
+}
+function updateBars(){
+  [['p',P],['e',E]].forEach(([k,o])=>{
+    const pct=Math.max(0,o.cur/o.hp*100);
+    const bar=$(k+'Bar'); bar.style.width=pct+'%';
+    bar.style.background=pct>50?'var(--mint)':pct>25?'var(--mustard)':'var(--cherry)';
+    $(k+'Hp').textContent=`${Math.max(0,o.cur)} / ${o.hp} HP`;
+  });
+}
+let curQ;
+const BOT_ACCURACY=0.5;
+function renderQ(whose){
+  curQ=nextQ();
+  const [topic,text,opts,ans]=curQ;
+  $('roundLbl').textContent='ROUND '+round;
+  $('qTopic').textContent=(whose==='bot'?`${E.n.toUpperCase()}'S TURN · `:'YOUR TURN · ')+topic.toUpperCase();
+  $('qBox').classList.toggle('botturn',whose==='bot');
+  $('qText').textContent=text;
+  $('fact').hidden=true;$('nextBtn').hidden=true;$('movesWrap').hidden=true;
+  const order=shuffle(opts.map((o,i)=>i));
+  $('opts').innerHTML='';
+  order.forEach((oi,n)=>{
+    const b=document.createElement('button');b.className='opt';b.id='opt'+n;
+    b.textContent=opts[oi];b.dataset.i=oi;
+    if(whose==='bot')b.disabled=true;else b.onclick=()=>answer(b,oi===ans);
+    $('opts').appendChild(b);
+  });
+}
+function askQ(){busy=false;renderQ('player');$('log').textContent='Your turn! Answer to attack.'}
+function popDmg(sprite,txt,color){
+  const s=document.createElement('span');s.className='pop';s.textContent=txt;if(color)s.style.color=color;
+  sprite.appendChild(s);setTimeout(()=>s.remove(),1000);
+}
+function anim(el,c){el.classList.remove(c);void el.offsetWidth;el.classList.add(c)}
+function revealAnswer(pickedBtn,correct,who){
+  const [, , , ans,fact]=curQ;
+  [...$('opts').children].forEach(b=>{b.disabled=true;if(+b.dataset.i===ans)b.classList.add('ok')});
+  if(!correct&&pickedBtn)pickedBtn.classList.add('no');
+  $('fact').textContent=(correct?(who==='bot'?'The bot got it! ':'Correct! '):(who==='bot'?'The bot got it wrong! ':'Not quite. '))+fact;
+  $('fact').hidden=false;
+}
+function answer(btn,correct){
+  if(busy)return;busy=true;
+  revealAnswer(btn,correct,'player');
+  if(correct){
+    sfx('correct');
+    P.combo=(P.combo||0)+1;
+    $('log').textContent='Correct! Choose your attack.';
+    showMoves();
+  }else{
+    P.combo=0;sfx('wrong');
+    $('log').textContent='Wrong answer. You lose your turn!';
+    afterPlayer();
+  }
+}
+function afterPlayer(){
+  updateBars();
+  if(E.cur<=0){setTimeout(endFight,1300);return}
+  setTimeout(botTurn,1800);
+}
+/* ---- Bot opponent: answers its own question, right about half the time ---- */
+function botTurn(){
+  renderQ('bot');
+  $('log').textContent=`${E.n} is thinking…`;
+  setTimeout(()=>{
+    const [, , opts,ans]=curQ;
+    const correct=Math.random()<BOT_ACCURACY;
+    const btns=[...$('opts').children];
+    const wrong=btns.filter(b=>+b.dataset.i!==ans);
+    const pick=correct?btns.find(b=>+b.dataset.i===ans):wrong[Math.random()*wrong.length|0];
+    pick.classList.add('botpick');
+    setTimeout(()=>{
+      revealAnswer(pick,correct,'bot');
+      if(correct){sfx('correct');botMove()}
+      else{sfx('wrong');$('log').textContent=`${E.n} answered wrong and loses its turn!`}
+      setTimeout(afterBot,correct?900:300);
+    },700);
+  },1600);
+}
+function botMove(){
+  const low=E.cur<E.hp*0.35;
+  const r=Math.random();
+  if(low&&r<0.4)doHeal('e');
+  else if(r<0.15&&!E.shield)doShield('e');
+  else if(r<0.5){
+    if(Math.random()<0.75)attack('e',1.7,E.move,E.move);
+    else doMiss('e',E.move);
+  }else attack('e',1,'Sword Slash','slash');
+  updateBars();
+}
+function afterBot(){
+  updateBars();round++;
+  if(P.cur<=0){setTimeout(endFight,1300);return}
+  saveGame();
+  $('nextBtn').textContent='Your Turn';$('nextBtn').hidden=false;$('nextBtn').focus({preventScroll:true});
+}
+/* ---- Move effects: each special move looks like its name ---- */
+const MOVE_FX={
+ 'Cheese Lasso':['🧀','lasso'],'Patty Slam':['🍔','slam'],'Mustard Blast':['🟡','beam'],'Salsa Storm':['🍅','rain'],
+ 'Wasabi Slice':['#3fae3a','slice'],'Sprinkle Spin':['✨','spin'],'Chip Barrage':['🍫','barrage'],'Frosting Flood':['🍥','wave'],
+ 'Brain Freeze':['❄️','burst'],'Seed Spitter':['⚫','barrage'],'Peel Trip':['🍌','projectile'],'Core Crash':['🍎','slam'],
+ 'Berry Bomb':['🍓','bomb'],'Spike Shield':['🔺','burst'],'Root Rocket':['🚀','projectile'],'Floret Fury':['🥦','barrage'],
+ 'Kernel Pop':['🍿','burst'],'Fire Breath':['🔥','beam'],'Pit Throw':['🟤','projectile'],'Melt Down':['🧀','rain'],
+ 'Butter Flake':['🧈','rain'],'Twist Lock':['🌀','lasso'],'Salt Shower':['🧂','rain'],'Kernel Burst':['🍿','bomb'],
+ 'Syrup Splash':['🍯','wave'],'Noodle Whip':['〰️','beam'],'Yolk Splat':['🍳','bomb'],'Sour Shock':['⚡','burst'],
+ 'Grape Shot':['🍇','barrage'],'Cocoa Crush':['🍫','slam']
+};
+function pt(el){const a=$('arena').getBoundingClientRect(),r=el.getBoundingClientRect();return{el,x:r.left+r.width/2-a.left,y:r.top+r.height/2-a.top}}
+function spawn(t,x,y,size){const s=document.createElement('span');s.className='fxp';s.textContent=t;s.style.left=x+'px';s.style.top=y+'px';s.style.fontSize=size+'px';s.style.opacity=0;$('fx').appendChild(s);return s}
+function fly(el,frames,dur,delay=0,easing='ease-in'){
+  const kf=frames.map(([dx,dy,rot=0,sc=1,op=1])=>({transform:`translate(-50%,-50%) translate(${dx}px,${dy}px) rotate(${rot}deg) scale(${sc})`,opacity:op}));
+  const an=el.animate(kf,{duration:dur,delay,easing,fill:'forwards'});an.onfinish=()=>el.remove();
+}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function burstAt(b,e,n=10,dist=70,size=26){for(let i=0;i<n;i++){const ang=i/n*Math.PI*2;fly(spawn(e,b.x,b.y,size),[[0,0,0,.4],[Math.cos(ang)*dist,Math.sin(ang)*dist,rnd(-180,180),1,0]],500,0,'ease-out')}}
+const STYLE={
+  projectile(a,b,e){const dx=b.x-a.x,dy=b.y-a.y;fly(spawn(e,a.x,a.y,46),[[0,0],[dx/2,dy/2-60,360,1.3],[dx,dy,720,1]],480);setTimeout(()=>burstAt(b,'💥',1,0,50),480);return 480},
+  bomb(a,b,e){const dx=b.x-a.x,dy=b.y-a.y;fly(spawn(e,a.x,a.y,44),[[0,0],[dx/2,dy/2-110,180,1.2],[dx,dy,360,1]],560);setTimeout(()=>{burstAt(b,'💥',1,0,70);burstAt(b,e,10,85,24)},560);return 560},
+  barrage(a,b,e){for(let i=0;i<9;i++)fly(spawn(e,a.x,a.y+rnd(-25,25),26),[[0,0],[b.x-a.x+rnd(-15,15),b.y-a.y+rnd(-30,30),rnd(-360,360)]],360,i*60);return 380},
+  beam(a,b,e){for(let i=0;i<16;i++)fly(spawn(e,a.x,a.y,22),[[0,0,0,.5],[b.x-a.x,b.y-a.y+rnd(-18,18),rnd(-40,40),2,.9]],340,i*35,'linear');return 360},
+  rain(a,b,e){for(let i=0;i<12;i++){const x=b.x+rnd(-55,55);fly(spawn(e,x,b.y-170,rnd(22,34)),[[0,0,0,1,1],[0,170+rnd(-15,15),rnd(-90,90),1,1]],380,rnd(0,350),'ease-in')}return 420},
+  burst(a,b,e){fly(spawn(e,b.x,b.y,50),[[0,0,0,.2],[0,0,20,1.8],[0,0,0,1.4,0]],600,0,'ease-out');burstAt(b,e,12,90,24);return 150},
+  wave(a,b,e){for(let i=0;i<8;i++){fly(spawn(e,a.x,a.y+30,40),[[0,0,0,.6],[(b.x-a.x)*.5,-30,0,1.2],[b.x-a.x,0,0,1.5,.9]],450,i*45,'ease-in-out')}return 470},
+  lasso(a,b,e){const R=60;for(let i=0;i<8;i++){const f=[];for(let k=0;k<=12;k++){const ang=(i/8+k/12*1.5)*Math.PI*2;const r=R*(1-k/24);f.push([Math.cos(ang)*r,Math.sin(ang)*r*.6,0,1,1])}fly(spawn(e,b.x,b.y,28),f,800,0,'linear')}return 600},
+  spin(a,b,e){a.el.parentNode.animate([{rotate:'0deg'},{rotate:'720deg'}],{duration:500});burstAt(a,e,10,40,22);for(let i=0;i<10;i++)fly(spawn(e,a.x,a.y,24),[[0,0],[b.x-a.x+rnd(-25,25),b.y-a.y+rnd(-35,35),360]],380,200+i*30);return 600},
+  slam(a,b,e){const st=a.el.parentNode,dx=b.x-a.x;st.animate([{translate:'0 0'},{translate:`${dx*.5}px -90px`},{translate:`${dx*.8}px 0`},{translate:'0 0'}],{duration:700,easing:'ease-in-out'});setTimeout(()=>{burstAt(b,'💥',1,0,64);burstAt(b,e,8,70,26)},380);return 380},
+  slice(a,b,color){for(let i=0;i<3;i++){const s=document.createElement('div');s.className='streak';s.style.background=color;s.style.left=b.x+'px';s.style.top=(b.y-25+i*25)+'px';$('fx').appendChild(s);
+    const an=s.animate([{transform:'translate(-50%,-50%) rotate(-30deg) scaleX(0)',opacity:1},{transform:'translate(-50%,-50%) rotate(-30deg) scaleX(1)',opacity:1},{transform:'translate(-50%,-50%) rotate(-30deg) scaleX(1)',opacity:0}],{duration:420,delay:i*90,fill:'forwards'});an.onfinish=()=>s.remove()}
+    a.el.parentNode.animate([{translate:'0 0'},{translate:`${(b.x-a.x)*.7}px 0`},{translate:'0 0'}],{duration:500});return 200}
+};
+function playFx(key,aEl,dEl,side){
+  const a=pt(aEl),b=pt(dEl);
+  if(key==='slash'){anim($(side+'Sword'),'swing');anim(aEl,'lunge-l');sfx('swoosh');setTimeout(()=>{STYLE.slice(b,b,'var(--ink)')},180);return 260}
+  if(key==='combo'){sfx('swoosh');STYLE.barrage(a,b,'⭐');setTimeout(()=>STYLE.slam(a,b,'⭐'),250);return 630}
+  const [e,style]=MOVE_FX[key]||['💥','projectile'];
+  sfx(style==='beam'?'beam':'swoosh');
+  return STYLE[style](a,b,e);
+}
+function setShieldLook(side,on){$(side+'Sprite').parentNode.classList.toggle('shielded',on)}
+function attack(side,mult,label,fxKey){
+  const A=side==='p'?P:E, D=side==='p'?E:P, ds=side==='p'?'e':'p';
+  const aEl=$(side+'Sprite'), dEl=$(ds+'Sprite');
+  const crit=side==='p'&&Math.random()<0.15;
+  let dmg=Math.round(A.atk*(0.85+Math.random()*0.3)*mult*(crit?1.5:1)),note='';
+  if(D.shield){dmg=Math.round(dmg/2);D.shield=false;note=' (shield blocked half)'}
+  D.cur-=dmg;
+  const impact=playFx(fxKey,aEl,dEl,side);
+  setTimeout(()=>{if(note)setShieldLook(ds,false);anim(dEl,'hit');spark(dEl.parentNode);sfx('hit');if(fxKey==='slash')sfx('clang');if(crit||fxKey!=='slash')sfx('crit');popDmg(dEl,'-'+dmg)},impact);
+  $('log').textContent=`${A.n} uses ${label} for ${dmg}!`+(crit?' CRITICAL!':'')+note;
+}
+function doMiss(side,move){
+  const ds=side==='p'?'e':'p',dEl=$(ds+'Sprite');
+  const impact=playFx(move,$(side+'Sprite'),dEl,side);
+  setTimeout(()=>{sfx('wrong');anim(dEl,'lunge-l');popDmg(dEl,'MISS','var(--plum)')},impact);
+  $('log').textContent=`${(side==='p'?P:E).n}'s ${move} missed!`;
+}
+function doHeal(side){
+  const O=side==='p'?P:E,el=$(side+'Sprite'),a=pt(el);
+  const h=Math.min(O.hp-O.cur,Math.round(O.hp*.25));O.cur+=h;
+  for(let i=0;i<8;i++)fly(spawn(i%2?'💚':'✨',a.x+rnd(-40,40),a.y+30,rnd(20,30)),[[0,0,0,.6],[rnd(-10,10),-110,0,1.1,0]],900,i*80,'ease-out');
+  popDmg(el,'+'+h,'var(--mint)');sfx('heal');
+  $('log').textContent=`${O.n} takes a Snack Break and heals ${h} HP!`;
+}
+function doShield(side){
+  const O=side==='p'?P:E;O.shield=true;setShieldLook(side,true);sfx('shield');
+  $('log').textContent=`${O.n} raises a shield!`;
+}
+function moveList(){
+  const list=[
+    {id:'slash',name:'Sword Slash',desc:'Always hits · normal damage'},
+    {id:'special',name:P.move,desc:'1.7× damage · 75% chance to hit'},
+    {id:'heal',name:'Snack Break',desc:'Heal 25% of your HP'},
+    {id:'shield',name:'Shield Up',desc:'Block half of the next hit'}
+  ];
+  if(P.combo>=3)list.unshift({id:'combo',name:'Super Combo!',desc:`${P.combo} right in a row · 2.5× damage`,hot:true});
+  return list;
+}
+function showMoves(){
+  const box=$('moves');box.innerHTML='';
+  moveList().forEach((m,n)=>{
+    const b=document.createElement('button');b.className='move'+(m.hot?' hot':'');b.id='move'+n;
+    b.innerHTML=`<span class="mn">${m.name}</span><span class="md">${m.desc}</span>`;
+    b.onclick=()=>useMove(m.id);
+    box.appendChild(b);
+  });
+  $('movesWrap').hidden=false;
+  $('movesWrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function useMove(id){
+  $('movesWrap').hidden=true;
+  $('arena').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>{
+    if(id==='slash')attack('p',1,'Sword Slash','slash');
+    else if(id==='special'){if(Math.random()<0.75)attack('p',1.7,P.move,P.move);else doMiss('p',P.move)}
+    else if(id==='combo'){P.combo=0;attack('p',2.5,'SUPER COMBO','combo')}
+    else if(id==='heal')doHeal('p');
+    else if(id==='shield')doShield('p');
+    afterPlayer();
+  },250);
+}
+function endFight(){
+  const won=E.cur<=0;
+  if(won)wins++;
+  sfx(won?'win':'lose');
+  $('battle').hidden=true;$('end').hidden=false;
+  $('endEmoji').textContent=won?P.e:E.e;
+  $('endTitle').textContent=won?'You Win!':'Knocked Out!';
+  $('endText').textContent=won?`${P.n} defeated ${E.n} in ${round-1} rounds. Next opponent will be tougher!`:`${E.n} won this time. Wins in a row: ${wins}.`;
+  if(!won)wins=0;
+  inFight=false;saveGame();
+  $('againBtn').textContent=won?'Next Opponent':'Try Again';
+}
+$('startBtn').onclick=startFight;
+$('nextBtn').onclick=askQ;
+$('againBtn').onclick=startFight;
+$('menuBtn').onclick=()=>{wins=0;inFight=false;saveGame();$('end').hidden=true;$('select').hidden=false};
+$('saveBtn').onclick=()=>{flashSaved(saveGame());sfx('pick')};
+$('continueBtn').onclick=continueGame;
+$('newGameBtn').onclick=()=>{clearSave();chosen=null;wins=0;inFight=false;$('continueBox').hidden=true;renderGrid();renderDetail();$('startBtn').disabled=true};
+renderGrid();renderDetail();showContinue();
+</script>
