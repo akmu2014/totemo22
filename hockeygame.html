@@ -1,0 +1,2675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Ice Hockey Showdown 3D</title>
+<style>
+  html,body{margin:0;height:100%;background:#0b1020;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+  #wrap{position:fixed;inset:0}
+  #wrap canvas{display:block;touch-action:none}
+  #hud{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;align-items:stretch;border-radius:14px;overflow:hidden;
+       box-shadow:0 4px 18px rgba(0,0,0,.45);font-weight:800;color:#fff;pointer-events:none}
+  #hud div{display:flex;align-items:center;gap:10px;padding:6px 14px;font-size:15px;letter-spacing:1px}
+  #hud b{font-size:28px;min-width:22px;text-align:center}
+  #hud .red{background:#e3172f}#hud .blue{background:#1d4fd8}
+  #hud .clock{background:#0f1729;flex-direction:column;gap:0;padding:4px 12px;min-width:66px;justify-content:center}
+  #hud .clock span{font-size:11px;opacity:.75}#hud .clock b{font-size:18px;white-space:nowrap}
+  #banner small{display:block;font-size:17px;font-weight:700;-webkit-text-stroke:0;color:#fff;margin:8px auto 0;max-width:340px;text-shadow:0 2px 8px #000}
+  #banner{position:fixed;left:0;right:0;top:30%;text-align:center;font-size:64px;font-weight:900;pointer-events:none;opacity:0;
+          transform:scale(.6);transition:opacity .15s,transform .2s;-webkit-text-stroke:3px #fff;text-shadow:0 6px 20px rgba(0,0,0,.5)}
+  #banner.show{opacity:1;transform:scale(1)}
+  #banner.small{font-size:40px;-webkit-text-stroke:0;color:#fff}
+  #overlay{position:fixed;inset:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;color:#fff;text-align:center;background:rgba(11,16,32,.85);padding:16px}
+  h1{font-size:40px;margin:0 0 10px;color:#bfe6ff;text-shadow:0 0 18px #39f}
+  p{font-size:18px;line-height:1.5;margin:0 0 18px}
+  button{font-size:20px;padding:12px 26px;border:0;border-radius:12px;color:#fff;margin:6px;cursor:pointer;font-weight:700}
+  .easy{background:#2ecc71}.med{background:#f39c12}.hard{background:#ff4d8d}
+  .hidden{display:none!important}
+  .ovInner{margin:auto 0;display:flex;flex-direction:column;align-items:center;max-width:760px;width:100%}
+  #msg:empty{display:none}
+  .howto{max-width:640px;margin-top:10px}
+  .howto summary{cursor:pointer;font-weight:700;font-size:17px;margin-bottom:8px}
+  .howto p{font-size:16px}
+  #teamsPanel{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:10px;margin:4px 0 10px;width:100%}
+  .vs{align-self:center;font-weight:900;font-size:22px;color:#bfe6ff}
+  .teamCard{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px 12px;width:min(300px,44vw);min-width:160px;text-align:center}
+  .teamCard h3{margin:0 0 4px;font-size:13px;letter-spacing:1px;text-transform:uppercase;opacity:.75}
+  .teamCard canvas{width:92px;height:92px;display:block;margin:0 auto 4px}
+  .teamCard .tname{font-weight:800;font-size:16px;margin-bottom:6px;min-height:20px}
+  .teamCard .numLabel{margin-top:0}
+  .teamCard input.ab,.teamCard input.txt{text-transform:uppercase}
+  .teamCard select,.teamCard input[type=text]{width:100%;box-sizing:border-box;font-size:15px;padding:7px 8px;border-radius:9px;border:1px solid rgba(255,255,255,.25);background:#17203a;color:#fff;margin:3px 0}
+  .teamCard input.num[type=text]{display:block;margin:4px auto 8px;width:78px;height:58px;box-sizing:border-box;text-align:center;font:900 34px system-ui,sans-serif;border:3px solid;border-radius:12px;padding:0}
+  .teamCard details{text-align:left;margin-top:4px}
+  .teamCard summary{cursor:pointer;font-size:14px;font-weight:700;color:#ffd23f;text-align:center;padding:4px}
+  .teamCard label{display:block;font-size:12px;opacity:.85;margin-top:6px}
+  .teamCard .row{display:flex;gap:6px;align-items:center}
+  .teamCard input[type=color]{width:46px;height:34px;border:0;border-radius:8px;padding:0;background:none}
+  .teamCard .row select{flex:1}
+  #pass{position:fixed;right:18px;bottom:18px;width:88px;height:88px;border-radius:50%;padding:0;margin:0;
+        background:#ffd23f;color:#1b2a44;font-size:20px;font-weight:800;letter-spacing:1px;
+        box-shadow:0 4px 0 #b8901a,0 0 20px rgba(255,210,63,.5);touch-action:none;transition:opacity .15s,transform .08s}
+  #pass.off{opacity:.4;box-shadow:0 4px 0 #b8901a}
+  #pass:active{transform:translateY(3px)}
+  #shoot{position:fixed;right:22px;bottom:122px;width:96px;height:96px;border-radius:50%;padding:0;margin:0;
+        background:conic-gradient(#ffd23f calc(var(--p, 0) * 360deg), #e3172f 0deg);color:#fff;font-size:19px;font-weight:800;letter-spacing:1px;
+        text-shadow:0 1px 3px rgba(0,0,0,.5);box-shadow:0 4px 0 #8a0a1b,0 0 22px rgba(227,23,47,.55);touch-action:none;transition:opacity .15s,transform .08s}
+  #shoot.off{opacity:.35;box-shadow:0 4px 0 #8a0a1b}
+  #shoot:active{transform:translateY(3px)}
+  #steal{position:fixed;right:122px;bottom:30px;width:80px;height:80px;border-radius:50%;padding:0;margin:0;
+        background:#2ecc71;color:#fff;font-size:17px;font-weight:800;letter-spacing:1px;
+        box-shadow:0 4px 0 #1a8a4a,0 0 20px rgba(46,204,113,.5);touch-action:none;transition:opacity .15s,transform .08s}
+  #steal.off{opacity:.35;box-shadow:0 4px 0 #1a8a4a}
+  #steal:active{transform:translateY(3px)}
+  #faceoffBtn{position:fixed;left:50%;bottom:310px;transform:translateX(-50%);width:200px;height:68px;border-radius:34px;margin:0;padding:0;
+    font:900 22px system-ui,sans-serif;letter-spacing:1px;color:#fff;background:#24345f;border:3px solid #ffd23f;box-shadow:0 5px 0 #121b33,0 0 24px rgba(255,210,63,.4);touch-action:none}
+  #faceoffBtn.now{background:#2ecc71;border-color:#fff;box-shadow:0 5px 0 #1a8a4a,0 0 34px rgba(46,204,113,.9);animation:foPulse .25s ease-in-out infinite alternate}
+  #faceoffBtn.early{background:#b3541e;border-color:#ff9a3c}
+  #faceoffBtn.done{opacity:.6}
+  @keyframes foPulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.08)}}
+  #shove,#decoy{position:fixed;border-radius:50%;padding:0;margin:0;color:#fff;font-weight:800;letter-spacing:1px;touch-action:none;transition:opacity .15s,transform .08s}
+  #shove{right:130px;bottom:128px;width:78px;height:78px;font-size:15px;background:#ff8a1f;box-shadow:0 4px 0 #b35a00,0 0 18px rgba(255,138,31,.5)}
+  #decoy{right:32px;bottom:230px;width:74px;height:74px;font-size:14px;background:#9b4dff;box-shadow:0 4px 0 #5f22b0,0 0 18px rgba(155,77,255,.5)}
+  #shove.off,#decoy.off{opacity:.35}
+  #shove:active,#decoy:active{transform:translateY(3px)}
+  #camCtl{position:fixed;left:12px;top:66px;display:flex;flex-direction:row;align-items:center;gap:8px}
+  #stick{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:rgba(255,255,255,.12);border:3px solid rgba(255,255,255,.45);pointer-events:none;display:none}
+  #stick.active{display:block;background:rgba(255,255,255,.2)}
+  @media (pointer:coarse){ #stick{display:block;opacity:.55} #stick.active{opacity:1} }
+  #knob{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:0 2px 8px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
+  #keysHint{position:fixed;left:12px;bottom:14px;color:#fff;font-size:13px;font-weight:600;background:rgba(15,23,41,.7);padding:6px 10px;border-radius:10px;pointer-events:none}
+  @media (pointer:coarse){ #keysHint{display:none} }
+  #camCtl button{margin:0;padding:0;background:rgba(15,23,41,.85);border:2px solid rgba(255,255,255,.25);color:#fff;touch-action:none}
+  #zoomIn,#zoomOut,#musicBtn{width:44px;height:44px;border-radius:50%;font-size:22px;line-height:1}
+  #camBtn{padding:10px 14px!important;border-radius:22px;font-size:15px;white-space:nowrap}
+  #noweb{display:none;color:#fff;padding:24px;font-size:18px}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<div id="wrap"></div>
+<div id="hud"><div class="red"><span id="hudN0">YOU</span><b id="sRed">0</b></div><div class="clock"><span id="per">1st</span><b id="time">2:00</b></div><div class="blue"><b id="sBlue">0</b><span id="hudN1">CPU</span></div></div>
+<div id="banner"></div>
+<button id="faceoffBtn" class="hidden" aria-label="Win the faceoff">WIN FACEOFF</button>
+<button id="shoot" class="off" aria-label="Shoot">SHOOT</button>
+<button id="steal" class="off" aria-label="Steal the puck">STEAL</button>
+<button id="shove" class="off" aria-label="Shove a blue player">SHOVE</button>
+<button id="decoy" class="off" aria-label="Fake shot">DECOY</button>
+<button id="pass" class="off" aria-label="Pass to teammate">PASS</button>
+<div id="keysHint">WASD / arrows: skate · F (hold): shoot + aim · Space: pass/call (faceoff: tap Space or G as the puck drops) · R: steal · V: shove · X: decoy · M: music · drag: turn camera · Q/E: turn · wheel: zoom</div>
+<div id="stick"><div id="knob"></div></div>
+<div id="camCtl"><button id="musicBtn" aria-label="Music on or off">🎵</button><button id="camBtn">🎥 Roblox</button><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomOut" aria-label="Zoom out">−</button></div>
+<div id="overlay"><div class="ovInner">
+  <h1 id="title">🏒 Ice Hockey Showdown</h1>
+  <p id="msg"></p>
+  <div id="teamsPanel"></div>
+  <div class="diff">
+    <button class="easy" data-lvl="0.6">Easy</button>
+    <button class="med" data-lvl="0.85">Medium</button>
+    <button class="hard" data-lvl="1.0">Hard</button>
+  </div>
+  <details class="howto" open><summary>How to play</summary>
+  <p>You're the player with the yellow ring. Skate into the puck and it stays on your stick. <b>SHOOT</b> (or F): tap for a quick wrist shot, hold for a harder one. It goes exactly where the yellow target is — it starts on the side the goalie leaves open, and while you hold SHOOT the joystick moves it (push toward the net for top shelf). <b>DECOY</b> (X) fakes a shot to fool the goalie and defenders. <b>SHOVE</b> (V) knocks an opponent off the puck. Watch out: opponents can poke it away! When the puck is close, tap <b>STEAL</b> (or R) to lunge with your stick and take it.<br>📱 <b>Phone:</b> joystick on the left to skate, swipe on the right to turn the camera, pinch to zoom.<br>💻 <b>Computer:</b> WASD or arrows to skate, drag the mouse to turn the camera, wheel to zoom.<br>Tap <b>PASS</b> (or Space) for a lead pass to your teammate — he gets open on his own. When he has the puck, the button says <b>CALL</b>: tap it and he passes it back. At every faceoff, tap <b>WIN FACEOFF</b> right when the ref drops the puck — too early and you lose the draw! Tap 🎥 for other camera views, 🎵 to turn the music on or off.</p>
+  <p style="font-size:15px;max-width:440px;text-align:left;background:rgba(255,255,255,.07);padding:12px 16px;border-radius:12px">
+    <b>Hockey rules</b><br>
+    🕒 3 periods of 2 minutes. Most goals wins. Tied? Overtime — next goal wins.<br>
+    🔵 <b>Offside:</b> don't skate over the other team's blue line before the puck.<br>
+    🧊 <b>Icing:</b> shooting from your half across the far goal line (not into the net) means a faceoff in your end.<br>
+    🏒 Play restarts with a <b>faceoff</b> after goals and whistles.</p>
+  </details>
+</div></div>
+<script>
+// typing in a box on the start screen should type, not trigger game controls (R = steal, Space = pass, ...)
+['keydown', 'keyup'].forEach(type => document.addEventListener(type, e => {
+  if (e.target && e.target.closest && e.target.closest('input, select, textarea')) e.stopPropagation();
+}));
+const overlay = document.getElementById('overlay'), titleEl = document.getElementById('title'), msgEl = document.getElementById('msg');
+
+// Rink size in game units
+const W = 520, H = 900, GOAL = 150, BR = 11, MAXV = 22;
+const PERIOD_SECONDS = 120;   // length of each of the 3 periods
+const PERIOD_NAMES = ['', '1st', '2nd', '3rd', 'OT'];
+const BL_TOP = H * 0.32, BL_BOT = H * 0.68;   // blue lines
+const FRICTION = 0.985;   // how quickly the puck slows down on the ice
+const SR = 25;          // skater radius
+const GR = 33;          // goalie radius
+const G_TOP = 84, G_BOT = H - 84;   // goal lines: the nets sit out from the end boards, like a real rink
+const ND = 26, NH = 30;             // net depth and height
+const CR = 80;                      // rounded corners of the boards
+const GLINE = 34;       // how far goalies stand in front of their goal line
+const GRAV = 0.47;      // gravity for lifted shots
+const SPEED = 0.65;     // overall game speed: 1 = fast, lower = slower (try 0.5 to 0.8)
+
+// ---------- Teams ----------
+// team 0 = red (you), defends the bottom net, attacks the top
+// team 1 = blue (computer), defends the top net, attacks the bottom
+// ---------- Teams: pick a ready-made team or build your own (name, colours, logo) ----------
+const PRESETS = [
+  { name: 'Ember City Blaze',     abbr: 'EMB', c1: '#d0142c', c2: '#ffb000', logo: { symbol: '🔥', shape: 'circle' } },
+  { name: 'Kingsport Royals',     abbr: 'KNG', c1: '#1d4fd8', c2: '#ffd23f', logo: { symbol: '👑', shape: 'shield' } },
+  { name: 'Frostport Wolves',     abbr: 'FRW', c1: '#1b2a6b', c2: '#c0c7d1', logo: { symbol: '🐺', shape: 'circle' } },
+  { name: 'Stormridge Thunder',   abbr: 'STM', c1: '#5b2a86', c2: '#f2b705', logo: { symbol: '⚡', shape: 'diamond' } },
+  { name: 'Ironlake Grizzlies',   abbr: 'IRN', c1: '#5a3a22', c2: '#e87722', logo: { symbol: '🐻', shape: 'shield' } },
+  { name: 'Coral Coast Sharks',   abbr: 'CCS', c1: '#00797f', c2: '#111111', logo: { symbol: '🦈', shape: 'hexagon' } },
+  { name: 'Polar Point Yetis',    abbr: 'YTI', c1: '#6fb7e8', c2: '#0b2a4a', logo: { symbol: '❄️', shape: 'hexagon' } },
+  { name: 'Skyhaven Falcons',     abbr: 'SKY', c1: '#1a7a3e', c2: '#e5c100', logo: { symbol: '🦅', shape: 'shield' } },
+  { name: 'Ridgeview Rockets',    abbr: 'RVR', c1: '#151515', c2: '#9be22d', logo: { symbol: '🚀', shape: 'circle' } },
+  { name: 'Dragon Harbor Dragons', abbr: 'DRG', c1: '#8a0a1b', c2: '#2bb673', logo: { symbol: '🐉', shape: 'diamond' } },
+  { name: 'Maple Hollow Moose',   abbr: 'MPL', c1: '#0b5a35', c2: '#f3e9d2', logo: { symbol: '🫎', shape: 'shield' } },
+  { name: 'Starfall Comets',      abbr: 'STR', c1: '#0b1b3a', c2: '#ff4d8d', logo: { symbol: '⭐', shape: 'circle' } },
+  { name: 'Sunvale Tigers',       abbr: 'SUN', c1: '#f07d00', c2: '#1b1b1b', logo: { symbol: '🐯', shape: 'hexagon' } },
+  { name: 'Lakeshore Lightning',  abbr: 'LKS', c1: '#00a3e0', c2: '#ffffff', logo: { symbol: 'letters', shape: 'diamond', text: 'LL' } }
+];
+const LOGO_SYMBOLS = ['🔥', '👑', '🐺', '⚡', '🐻', '🦈', '❄️', '🦅', '🚀', '🐉', '🫎', '⭐', '🐯', '🦁', '🐍', '🦉', '🐝', '🦬', '🌊', '🏒', '💎', '🍁', '☠️', '🤖', 'letters'];
+const LOGO_SHAPES = ['circle', 'shield', 'diamond', 'hexagon'];
+const copyTeam = t => JSON.parse(JSON.stringify(t));
+let teamCfg = [copyTeam(PRESETS[0]), copyTeam(PRESETS[1])];
+let myNumber = '9';                                  // your jersey number (0–99)
+try { const n = localStorage.getItem('hockeyNumber'); if (n && /^\d{1,2}$/.test(n)) myNumber = n; } catch (e) {}
+try { const saved = JSON.parse(localStorage.getItem('hockeyTeams') || 'null'); if (saved && saved.length === 2 && saved[0].c1 && saved[1].c1) teamCfg = saved; } catch (e) {}
+
+const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const rgbHex = (r, g, b) => '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+function shade(h, f) { const [r, g, b] = hexRgb(h); return f < 0 ? rgbHex(r * (1 + f), g * (1 + f), b * (1 + f)) : rgbHex(r + (255 - r) * f, g + (255 - g) * f, b + (255 - b) * f); }
+function lum(h) { const [r, g, b] = hexRgb(h); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; }
+function colorDist(a, b) { const x = hexRgb(a), y = hexRgb(b); return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]); }
+const inkOn = bg => lum(bg) > 0.6 ? '#111111' : '#ffffff';   // text colour that shows up on a background
+
+// TEAM[0] = your team (home), TEAM[1] = the computer (away)
+const TEAM = [
+  { ownY: G_BOT, attackY: G_TOP },
+  { ownY: G_TOP, attackY: G_BOT }
+];
+function setupTeams() {
+  teamCfg.forEach((c, i) => {
+    const T = TEAM[i];
+    T.name = ((c.name || '').trim() || (i ? 'Opponents' : 'My Team')).slice(0, 24);
+    T.short = T.name.trim().split(/\s+/).pop();                               // "Blaze"
+    T.abbr = (c.abbr || T.short.slice(0, 3)).toUpperCase().slice(0, 3);
+    T.c1 = c.c1; T.c2 = c.c2; T.logo = c.logo;
+    T.color = c.c1; T.helmet = shade(c.c1, -0.45); T.trim = c.c2; T.away = false;
+  });
+  // like real hockey: if the jerseys look too alike, the away team wears white
+  if (colorDist(TEAM[0].c1, TEAM[1].c1) < 110 || lum(TEAM[1].c1) > 0.85) {
+    const T = TEAM[1]; T.away = true; T.color = '#f2f4f7'; T.helmet = T.c1; T.trim = T.c1;
+  }
+}
+setupTeams();
+// draw a team logo on a 2D canvas
+function drawLogo(g, cx, cy, R, t) {
+  const L = t.logo || {};
+  g.save(); g.translate(cx, cy); g.beginPath();
+  if (L.shape === 'shield') {
+    g.moveTo(-R * 0.86, -R * 0.9); g.lineTo(R * 0.86, -R * 0.9); g.lineTo(R * 0.86, R * 0.1);
+    g.quadraticCurveTo(R * 0.8, R * 0.72, 0, R); g.quadraticCurveTo(-R * 0.8, R * 0.72, -R * 0.86, R * 0.1); g.closePath();
+  } else if (L.shape === 'diamond') { g.moveTo(0, -R); g.lineTo(R, 0); g.lineTo(0, R); g.lineTo(-R, 0); g.closePath(); }
+  else if (L.shape === 'hexagon') { for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; g.lineTo(Math.cos(a) * R, Math.sin(a) * R); } g.closePath(); }
+  else g.arc(0, 0, R, 0, Math.PI * 2);
+  g.fillStyle = t.c1; g.fill(); g.lineWidth = Math.max(1.5, R * 0.13); g.strokeStyle = t.c2; g.stroke();
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  if (L.symbol && L.symbol !== 'letters') {
+    g.font = `${R * (L.shape === 'diamond' ? 0.8 : 1.0)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    g.fillStyle = '#fff'; g.fillText(L.symbol, 0, R * 0.06);
+  } else {
+    const txt = (L.text || t.abbr || 'T').slice(0, 3).toUpperCase();
+    g.font = `900 ${R * (txt.length > 2 ? 0.6 : txt.length > 1 ? 0.78 : 1.05)}px system-ui,sans-serif`;
+    g.lineWidth = Math.max(1, R * 0.09); g.strokeStyle = t.c2; g.strokeText(txt, 0, R * 0.05);
+    g.fillStyle = inkOn(t.c1); g.fillText(txt, 0, R * 0.05);
+  }
+  g.restore();
+}
+function makePlayer(team, role) {
+  return { team, role, x: 0, y: 0, vx: 0, vy: 0, r: role === 'goalie' ? GR : SR, tx: 0, ty: 0, stun: 0 };
+}
+const you      = makePlayer(0, 'you');
+const redMate  = makePlayer(0, 'skater');
+const redGoal  = makePlayer(0, 'goalie');
+const blueA    = makePlayer(1, 'skater');
+const blueB    = makePlayer(1, 'skater');
+const blueGoal = makePlayer(1, 'goalie');
+const players = [redGoal, blueGoal, redMate, blueA, blueB, you];
+const puck = { x: W / 2, y: H / 2, vx: 0, vy: 0, h: 0, vh: 0 };   // h = height off the ice (lifted shots)
+
+let score = [0, 0];          // [you, computer]
+let running = false, aiSkill = 0.85, pause = 0, flashColor = '#fff';
+let period = 1, clock = PERIOD_SECONDS * 60, afterPause = null;
+let banner = { text: '', sub: '', color: '#fff', t: 0, small: false };
+let dropTimer = 0;
+let lastTouch = null;
+let lastByTeam = [null, null];
+let foPhase = 0, foDropT = 0, foPressed = null;   // faceoff timing game: 1 = ref holding the puck, 2 = puck dropping            // the last player on each team to touch the puck (they get the goal)
+const goalsBy = new Map();                // goals per player this game (3 = hat trick!)
+function touch(p) { lastTouch = { team: p.team, y: puck.y, who: p }; lastByTeam[p.team] = p; }
+const show = { t: 0, scorer: null, dark: 0 };   // special-goal light show: lights off, spotlight on the scorer
+const phonePts = [];                      // fans' phone lights in the stands (only during the light show)
+let possession = null;   // the player carrying the puck on their stick (you or your teammate)
+let carryAngle = 0;      // which way your stick is pointing while you carry
+let grabCooldown = 0;    // short wait after shooting / passing / losing the puck before you can grab it again   // who touched the puck last, and where (for icing)
+let passFlash = 0, passTimer = 0;   // passTimer: pass in flight
+let passFrom = null, passTarget = null;          // who passed, and who the pass is for
+let mateGrab = 0, mateHold = 0, mateAngle = 0;    // your teammate handling the puck
+let mateSpot = null, mateSpotTimer = 0;           // where your teammate is getting open
+let aimX = W / 2, aimHigh = false;                // where your shot is going (aim it while winding up)
+let decoyWait = 0, shoveWait = 0, shoveAnim = 0;
+let stuckTimer = 0, stuckX = 0, stuckY = 0;
+let charging = false, charge = 0;   // holding SHOOT winds up a harder shot
+let shotLive = 0;                   // frames since your last shot (for SAVE! / POST! calls)
+let shake = 0;                      // camera shake after a big slapshot
+let scrum = 0, cpuShotLive = 0;                      // frames both teams have been fighting over a pinned puck
+
+
+// Referee: if the puck is pinned and barely moving, drop it at the nearest faceoff dot
+function checkStuck() {
+  if (dist(puck.x, puck.y, stuckX, stuckY) > 30) { stuckTimer = 0; stuckX = puck.x; stuckY = puck.y; return; }
+  if (++stuckTimer < 130) return;
+  const dots = [[W * 0.24, H * 0.18], [W * 0.76, H * 0.18], [W * 0.24, H * 0.82], [W * 0.76, H * 0.82], [W / 2, H / 2],
+                [W * 0.24, H * 0.37], [W * 0.76, H * 0.37], [W * 0.24, H * 0.63], [W * 0.76, H * 0.63]];
+  let best = dots[0];
+  dots.forEach(d => { if (dist(d[0], d[1], puck.x, puck.y) < dist(best[0], best[1], puck.x, puck.y)) best = d; });
+  stuckTimer = 0;
+  whistle('Whistle', 'The puck was frozen', best);
+}
+
+// ---------- Sound: music, crowd and effects (all made live with Web Audio — no files needed) ----------
+let audio = null, master, musicBus, sfxBus, crowdBus, noiseBuf, crowdGain, skateGain, skateFilter;
+let musicOn = true;
+try { musicOn = localStorage.getItem('hockeyMusic') !== 'off'; } catch (e) {}
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+function initAudio() {
+  if (audio) { if (audio.state === 'suspended') audio.resume(); return; }
+  try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audio = null; return; }
+  master = audio.createGain(); master.gain.value = 0.9;
+  const comp = audio.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4;
+  const limiter = audio.createDynamicsCompressor();                 // safety limiter: no harsh clipping
+  limiter.threshold.value = -2; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.002; limiter.release.value = 0.1;
+  master.connect(comp); comp.connect(limiter); limiter.connect(audio.destination);
+  musicBus = audio.createGain(); musicBus.gain.value = 0; musicBus.connect(master);
+  sfxBus = audio.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
+  crowdBus = audio.createGain(); crowdBus.gain.value = 0.9; crowdBus.connect(master);
+  noiseBuf = audio.createBuffer(1, audio.sampleRate * 2, audio.sampleRate);
+  const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  // crowd murmur that never stops
+  const cn = audio.createBufferSource(); cn.buffer = noiseBuf; cn.loop = true;
+  crowdGain = audio.createGain(); crowdGain.gain.value = 0.05;
+  chain(cn, filt('lowpass', 900, 0.5), filt('bandpass', 520, 0.4), crowdGain, crowdBus); cn.start();
+  // your skates scraping the ice
+  const sn = audio.createBufferSource(); sn.buffer = noiseBuf; sn.loop = true;
+  skateFilter = filt('bandpass', 4200, 0.9); skateGain = audio.createGain(); skateGain.gain.value = 0;
+  chain(sn, filt('highpass', 2200), skateFilter, skateGain, sfxBus); sn.start();
+  music.start();
+}
+const now = () => audio.currentTime;
+function chain(...n) { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; }
+function filt(type, f, q = 1) { const b = audio.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; }
+function osc(type, f, t, dur) { const o = audio.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.start(t); o.stop(t + dur + 0.05); return o; }
+function noiseAt(t, dur) { const n = audio.createBufferSource(); n.buffer = noiseBuf; n.loop = true; n.start(t, Math.random() * 1.5); n.stop(t + dur + 0.05); return n; }
+function env(t, a, peak, decay) {         // quick attack, smooth decay
+  const g = audio.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + a);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + a + decay);
+  return g;
+}
+function swell(t, up, peak, hold, down) { // slow rise and fall (crowd reactions)
+  const g = audio.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + up);
+  g.gain.setValueAtTime(peak, t + up + hold); g.gain.exponentialRampToValueAtTime(0.0001, t + up + hold + down);
+  return g;
+}
+function beep(freq, dur = 0.06, vol = 0.15) {
+  if (!audio) return;
+  const t = now(); chain(osc('triangle', freq, t, dur), env(t, 0.005, vol, dur), sfxBus);
+}
+
+const sfx = {
+  slap(power) {                                     // crack of the stick on a shot
+    if (!audio) return; const t = now();
+    chain(noiseAt(t, 0.2), filt('bandpass', 1600 + 1600 * power, 0.7), env(t, 0.002, 0.45 + 0.55 * power, 0.08 + 0.07 * power), sfxBus);
+    const o = osc('sine', 150, t, 0.2); o.frequency.exponentialRampToValueAtTime(55, t + 0.15);
+    chain(o, env(t, 0.002, 0.25 + 0.5 * power, 0.15), sfxBus);
+  },
+  stick(v = 0.5) {                                  // stick tapping the puck
+    if (!audio) return; const t = now();
+    chain(noiseAt(t, 0.06), filt('bandpass', 2600, 1.5), env(t, 0.001, 0.35 * v, 0.04), sfxBus);
+    chain(osc('triangle', 820, t, 0.05), env(t, 0.001, 0.12 * v, 0.03), sfxBus);
+  },
+  boards(v) {                                       // puck thumping the boards
+    if (!audio) return; v = clamp(v, 0, 1); if (v < 0.06) return; const t = now();
+    chain(noiseAt(t, 0.35), filt('lowpass', 260, 1), env(t, 0.003, 0.9 * v, 0.28), sfxBus);
+    chain(noiseAt(t, 0.15), filt('highpass', 3500), env(t, 0.002, 0.08 * v, 0.1), sfxBus);
+  },
+  post() {                                          // ringing off the post
+    if (!audio) return; const t = now();
+    [[2350, 0.22], [3730, 0.12], [5200, 0.07]].forEach(([f, a]) => chain(osc('sine', f, t, 0.9), env(t, 0.001, a, 0.85), sfxBus));
+  },
+  whistle() {                                       // referee's pea whistle (trill)
+    if (!audio) return; const t = now();
+    [[0, 0.16], [0.22, 0.55]].forEach(([s0, len]) => {
+      const o = osc('sine', 2900, t + s0, len), lfo = osc('square', 27, t + s0, len), lg = audio.createGain();
+      lg.gain.value = 170; chain(lfo, lg, o.frequency);
+      chain(o, swell(t + s0, 0.02, 0.22, len - 0.08, 0.05), sfxBus);
+    });
+  },
+  horn() {                                          // goal horn: a deep, booming ship air horn (two big horns sounding together)
+    if (!audio) return; const t = now(), L = 3.2;     // L = how long the blast lasts (seconds)
+    const out = audio.createGain(); out.gain.value = 1;
+    // arena echo: the blast bounces around the building
+    [[0.13, 0.35], [0.29, 0.22], [0.47, 0.12]].forEach(([d, a]) => {
+      const dl = audio.createDelay(1); dl.delayTime.value = d; const eg = audio.createGain(); eg.gain.value = a;
+      chain(out, dl, filt('lowpass', 900), eg, sfxBus);
+    });
+    out.connect(sfxBus);
+    const body = audio.createGain();                  // the horn's "throat": strong resonances like a real air horn
+    const f1 = filt('bandpass', 440, 1.6), f2 = filt('bandpass', 1050, 2.2), lowEnd = filt('lowpass', 700, 0.8);
+    const mix = audio.createGain(); mix.gain.value = 1;
+    chain(body, f1, mix); chain(body, f2, mix); chain(body, lowEnd, mix);
+    const env2 = audio.createGain();                  // slams on, holds, then sags off
+    env2.gain.setValueAtTime(0.0001, t); env2.gain.exponentialRampToValueAtTime(0.33, t + 0.07);
+    env2.gain.setValueAtTime(0.33, t + L - 0.45); env2.gain.exponentialRampToValueAtTime(0.0001, t + L);
+    const shaper = audio.createWaveShaper(); shaper.curve = distCurve;   // a little grit
+    const pre = audio.createGain(); pre.gain.value = 0.35;
+    chain(mix, pre, shaper, filt('lowpass', 2600), env2, out);
+    [[116, 0], [117.4, 1], [58, 2]].forEach(([f, k]) => {   // two horns slightly out of tune (that big wobbly "WAAAH") + a sub
+      [['sawtooth', 1], ['square', 0.6]].forEach(([type, a]) => {
+        const o = osc(type, f * 0.86, t, L + 0.1);
+        o.frequency.exponentialRampToValueAtTime(f, t + 0.14);             // pitch scoops up as the air hits
+        o.frequency.setValueAtTime(f, t + L - 0.35); o.frequency.exponentialRampToValueAtTime(f * 0.93, t + L);   // and droops at the end
+        const vib = osc('sine', 4.6 + k * 0.7, t, L), vg = audio.createGain(); vg.gain.value = 9; chain(vib, vg, o.detune);
+        const og = audio.createGain(); og.gain.value = a * (k === 2 ? 0.5 : 1); chain(o, og, body);
+      });
+    });
+    chain(noiseAt(t, L), filt('bandpass', 2600, 0.9), swell(t, 0.05, 0.035, L - 0.4, 0.3), out);   // rushing air
+  },
+  buzzer() {                                        // end of period
+    if (!audio) return; const t = now();
+    chain(osc('square', 110, t, 1.3), filt('lowpass', 900), swell(t, 0.02, 0.25, 1.1, 0.15), sfxBus);
+  },
+  cheer(big = 1) {                                  // the crowd goes wild
+    if (!audio) return; const t = now();
+    chain(noiseAt(t, 4), filt('bandpass', 850, 0.5), swell(t, 0.35, 0.55 * big, 1.2, 2.2), crowdBus);
+    chain(noiseAt(t, 4), filt('bandpass', 2200, 0.8), swell(t, 0.3, 0.18 * big, 1.0, 2.0), crowdBus);
+    for (let i = 0; i < 9; i++) {                   // people whooping
+      const s0 = t + 0.2 + Math.random() * 1.6, f = 380 + Math.random() * 300, o = osc('triangle', f, s0, 0.7);
+      o.frequency.exponentialRampToValueAtTime(f * (1.3 + Math.random() * 0.4), s0 + 0.5);
+      chain(o, filt('lowpass', 1400), swell(s0, 0.1, 0.03 * big, 0.25, 0.3), crowdBus);
+    }
+  },
+  groan() {                                         // the crowd is disappointed
+    if (!audio) return; const t = now();
+    chain(noiseAt(t, 2), filt('bandpass', 380, 0.6), swell(t, 0.3, 0.35, 0.5, 1.0), crowdBus);
+    const o = osc('sawtooth', 240, t, 1.6); o.frequency.exponentialRampToValueAtTime(150, t + 1.4);
+    chain(o, filt('lowpass', 500), swell(t, 0.25, 0.05, 0.6, 0.7), crowdBus);
+  },
+  ooh() {                                           // "ooooh!" (near miss, big save)
+    if (!audio) return; const t = now();
+    chain(noiseAt(t, 1.6), filt('bandpass', 520, 0.7), swell(t, 0.15, 0.3, 0.4, 0.8), crowdBus);
+    const o = osc('triangle', 300, t, 1.3); o.frequency.exponentialRampToValueAtTime(420, t + 0.5);
+    chain(o, filt('lowpass', 800), swell(t, 0.12, 0.05, 0.4, 0.6), crowdBus);
+  },
+  whoosh() {                                        // missed poke-check
+    if (!audio) return; const t = now();
+    const f = filt('bandpass', 600, 1.2); f.frequency.exponentialRampToValueAtTime(2500, t + 0.16);
+    chain(noiseAt(t, 0.2), f, env(t, 0.02, 0.18, 0.15), sfxBus);
+  }
+};
+
+// ---- Music: an arena-rock / electronic soundtrack played live by a little synth band ----
+// Drums, a distorted "guitar", a pumping bass, synth leads with echo, risers and crowd "HEY!"s.
+// It follows the game: calmer in open play, building when the puck is near a net, all-out in the
+// last 30 seconds of a close 3rd period and in overtime. Organ + stomp-clap at stoppages, a goal song after you score.
+let synthBus = null, duck = null, echoIn = null;
+function musicFx() {                                // shared effects: sidechain "pump" and an echo for the leads
+  duck = audio.createGain(); duck.connect(musicBus);
+  synthBus = audio.createGain(); synthBus.connect(duck);
+  const dl = audio.createDelay(1); dl.delayTime.value = (60 / 146) * 0.75;   // dotted-eighth echo
+  const fb = audio.createGain(); fb.gain.value = 0.3; const lp = filt('lowpass', 2600);
+  echoIn = audio.createGain(); echoIn.gain.value = 0.35;
+  echoIn.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(synthBus);
+}
+function pump(t) {                                  // everything but the drums ducks on each kick
+  if (!duck) return;
+  duck.gain.cancelScheduledValues(t); duck.gain.setValueAtTime(0.4, t); duck.gain.linearRampToValueAtTime(1, t + 0.17);
+}
+const distCurve = (() => { const n = 2048, c = new Float32Array(n), k = 70; for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); } return c; })();
+function kick(t, v = 1) {
+  const o = osc('sine', 160, t, 0.35); o.frequency.exponentialRampToValueAtTime(40, t + 0.11);
+  chain(o, env(t, 0.002, 0.8 * v, 0.3), musicBus);
+  chain(noiseAt(t, 0.02), filt('highpass', 2000), env(t, 0.001, 0.12 * v, 0.012), musicBus);   // beater click
+  pump(t);
+}
+function snare(t, v = 1) {
+  chain(noiseAt(t, 0.25), filt('highpass', 1200), env(t, 0.001, 0.42 * v, 0.17), musicBus);
+  chain(noiseAt(t, 0.25), filt('bandpass', 3500, 0.8), env(t, 0.001, 0.15 * v, 0.2), musicBus);
+  const o = osc('triangle', 200, t, 0.12); o.frequency.exponentialRampToValueAtTime(150, t + 0.08);
+  chain(o, env(t, 0.001, 0.3 * v, 0.08), musicBus);
+}
+function hat(t, v = 1, open) { chain(noiseAt(t, 0.3), filt('highpass', 7800), env(t, 0.001, 0.11 * v, open ? 0.22 : 0.035), musicBus); }
+function crash(t, v = 1) {
+  chain(noiseAt(t, 1.8), filt('highpass', 4500), env(t, 0.002, 0.2 * v, 1.6), musicBus);
+  chain(noiseAt(t, 1.8), filt('bandpass', 7000, 2), env(t, 0.002, 0.1 * v, 1.2), musicBus);
+}
+function tom(t, m, v = 1) { const o = osc('sine', mtof(m), t, 0.3); o.frequency.exponentialRampToValueAtTime(mtof(m) * 0.6, t + 0.25); chain(o, env(t, 0.002, 0.55 * v, 0.26), musicBus); }
+function clap(t, v = 1) {
+  for (let i = 0; i < 3; i++) { const tt = t + i * 0.011; chain(noiseAt(tt, 0.2), filt('bandpass', 1300, 1.2), env(tt, 0.001, 0.32 * v, i === 2 ? 0.13 : 0.012), musicBus); }
+}
+function hey(t, v = 1) {                            // crowd shouting "HEY!"
+  [[180, 1], [227, 0.8], [151, 0.7]].forEach(([f, a]) => {
+    const o = osc('sawtooth', f, t, 0.25); o.frequency.exponentialRampToValueAtTime(f * 0.88, t + 0.2);
+    const g = env(t, 0.01, 0.12 * a * v, 0.18);
+    chain(o, filt('bandpass', 750, 3), g); chain(o, filt('bandpass', 1250, 4), g); g.connect(musicBus);
+  });
+  chain(noiseAt(t, 0.25), filt('bandpass', 1000, 0.8), env(t, 0.01, 0.12 * v, 0.18), musicBus);
+}
+function riser(t, dur) {                            // whoosh that builds into the drop
+  const f = filt('bandpass', 300, 2.5); f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(7000, t + dur);
+  const g = audio.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + dur);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+  chain(noiseAt(t, dur), f, g, musicBus);
+  const o = osc('sawtooth', 110, t, dur); o.frequency.exponentialRampToValueAtTime(880, t + dur);
+  const g2 = audio.createGain(); g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.05, t + dur); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+  chain(o, filt('lowpass', 1800), g2, musicBus);
+}
+function impact(t) { const o = osc('sine', 70, t, 1.2); o.frequency.exponentialRampToValueAtTime(30, t + 1); chain(o, env(t, 0.005, 0.55, 1.1), musicBus); crash(t, 1); }
+function bass(t, m, dur, v = 1) {
+  const g = env(t, 0.004, 0.3 * v, dur);
+  chain(osc('sawtooth', mtof(m), t, dur), filt('lowpass', 650, 3), g);
+  chain(osc('sine', mtof(m), t, dur), g);           // sub
+  g.connect(synthBus || musicBus);
+}
+function chug(t, root, v, dur) {                    // distorted power chord (palm-muted guitar)
+  const pre = audio.createGain(); pre.gain.value = 0.55;
+  [0, 7, 12].forEach(iv => chain(osc('sawtooth', mtof(root + iv) * (1 + (iv - 6) * 0.0006), t, dur), pre));
+  const ws = audio.createWaveShaper(); ws.curve = distCurve; ws.oversample = '2x';
+  chain(pre, ws, filt('lowpass', 2300, 0.9), filt('highpass', 100), env(t, 0.003, 0.085 * v, dur), synthBus || musicBus);
+}
+function lead(t, m, dur, v = 1) {                   // screaming synth lead with echo
+  const f = filt('lowpass', 3400, 1.2), g = swell(t, 0.012, 0.075 * v, Math.max(0.01, dur - 0.06), 0.05);
+  const a = osc('sawtooth', mtof(m), t, dur), b = osc('sawtooth', mtof(m), t, dur), c = osc('square', mtof(m - 12), t, dur);
+  a.detune.value = -9; b.detune.value = 9;
+  const vib = osc('sine', 5.5, t, dur), vg = audio.createGain(); vg.gain.value = 12; vib.connect(vg); vg.connect(a.detune); vg.connect(b.detune);
+  [a, b].forEach(o => o.connect(f)); const cg = audio.createGain(); cg.gain.value = 0.35; chain(c, cg, f);
+  chain(f, g); g.connect(synthBus || musicBus); if (echoIn) g.connect(echoIn);
+}
+function arp(t, m, dur, v = 1) {
+  const g = env(t, 0.003, 0.05 * v, dur);
+  chain(osc('square', mtof(m), t, dur), filt('lowpass', 2400, 2), g); g.connect(synthBus || musicBus); if (echoIn) g.connect(echoIn);
+}
+function pad(t, notes, dur, v = 1) {
+  const g = swell(t, dur * 0.3, 0.05 * v, dur * 0.4, dur * 0.3), f = filt('lowpass', 1400);
+  notes.forEach(m => [-7, 7].forEach(d => { const o = osc('sawtooth', mtof(m), t, dur); o.detune.value = d; o.connect(f); }));
+  chain(f, g); g.connect(synthBus || musicBus);
+}
+function organ(t, notes, dur, v = 1) {             // drawbar organ with a little Leslie wobble
+  const g = audio.createGain();
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.14 * v, t + 0.012);
+  g.gain.setValueAtTime(0.14 * v, t + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  const lfo = osc('sine', 6.3, t, dur), lg = audio.createGain(); lg.gain.value = 5; lfo.connect(lg);
+  notes.forEach(m => [[1, 0.5], [2, 0.3], [3, 0.16], [4, 0.09]].forEach(([h, a]) => {
+    const o = osc('sine', mtof(m) * h, t, dur); lg.connect(o.detune); const og = audio.createGain(); og.gain.value = a; chain(o, og, g);
+  }));
+  g.connect(musicBus);
+}
+function brass(t, m, dur, v = 1) {
+  const f = filt('lowpass', 900, 1.5); f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(2800, t + 0.06);
+  chain(osc('sawtooth', mtof(m), t, dur), f); chain(osc('sawtooth', mtof(m) * 1.006, t, dur), f); chain(osc('sawtooth', mtof(m - 12), t, dur), f);
+  chain(f, swell(t, 0.02, 0.1 * v, Math.max(0.01, dur - 0.1), 0.08), musicBus);
+  if (echoIn) chain(f, echoIn);
+}
+
+// E minor: Em – C – G – D, one chord per bar
+const ROOTS = [40, 36, 43, 38];
+const CHORDS = [[64, 67, 71], [60, 64, 67], [67, 71, 74], [62, 66, 69]];
+const MELODY = [                                    // 8 bars of eighth notes for the drop (0 = rest)
+  [71, 71, 76, 74, 71, 69, 67, 69], [67, 67, 72, 71, 67, 64, 67, 69],
+  [67, 71, 74, 79, 78, 74, 71, 74], [74, 73, 74, 76, 78, 0, 74, 0],
+  [76, 76, 79, 78, 76, 74, 71, 74], [72, 72, 76, 74, 72, 71, 67, 71],
+  [74, 74, 79, 81, 79, 78, 74, 78], [83, 0, 81, 0, 79, 0, 78, 0]
+];
+const TRACK_BPM = { play: 146, organ: 126, goal: 156 };
+const TRACKS = {
+  play(st, t, spb) {
+    const s16 = st % 16, bar = Math.floor(st / 16), ph = bar % 8, ci = bar % 4;
+    const I = music.level;                          // 1 calm · 2 pressure · 3 all-out
+    // song sections, 8 bars each: verse → build → DROP → breakdown (big moments stay in the drop)
+    let sec = Math.floor(bar / 8) % 4;
+    if (I >= 3) sec = 2; else if (I === 1 && sec === 2) sec = 0; else if (I === 2 && sec === 3) sec = 1;
+    const root = ROOTS[ci], ch = CHORDS[ci];
+    if (sec === 3) {                                // breakdown: half-time, big pad
+      if (s16 === 0) kick(t, 0.9);
+      if (s16 === 8) snare(t, 0.8);
+      if (s16 % 4 === 2) hat(t, 0.5);
+      if (s16 === 0) { pad(t, ch, spb * 16); bass(t, root, spb * 14, 0.8); }
+      if (s16 % 4 === 0) arp(t, ch[(s16 / 4) % 3] + 12, spb * 3, 0.7);
+      if (ph === 7 && s16 === 0) riser(t, spb * 16);
+    } else {
+      if (s16 % 4 === 0) kick(t, 1);               // four on the floor
+      if (sec === 2 && (s16 === 14 || (I >= 3 && s16 === 10))) kick(t, 0.7);
+      if (s16 === 4 || s16 === 12) { snare(t, 0.9); if (sec >= 1) clap(t, 0.5); }
+      if (sec === 0 && I === 1) { if (s16 % 2 === 0) hat(t, s16 % 4 === 2 ? 0.8 : 0.5); }
+      else hat(t, s16 % 2 ? 0.4 : 0.85, sec === 2 && s16 % 4 === 2);
+      // bass: pumping eighths, rolling sixteenths in the drop
+      if (sec === 2 || s16 % 2 === 0) bass(t, root + (s16 % 8 === 6 ? 12 : 0), spb * (sec === 2 ? 0.95 : 1.8), sec === 2 ? 0.85 : 1);
+      // power-chord chugs
+      if (s16 % 2 === 0) chug(t, root + 12, s16 % 8 === 0 ? 1 : s16 % 4 === 0 ? 0.75 : 0.55, spb * (sec === 2 && s16 % 8 === 0 ? 3.6 : 1.4));
+      // arpeggio when the pressure is on
+      if ((sec >= 1 || I >= 2)) arp(t, ch[s16 % 3] + (s16 >= 8 ? 12 : 0), spb * 0.9, sec === 2 ? 0.8 : 0.6);
+      // the lead melody in the drop
+      if (sec === 2 && s16 % 2 === 0) { const n = MELODY[ph][s16 / 2]; if (n) lead(t, n + (I >= 3 && ph >= 4 ? 12 : 0), spb * 1.8); }
+      // "HEY!" from the crowd
+      if (sec === 2 && s16 === 12 && bar % 2 === 1) hey(t);
+      // drum fill + riser at the end of a phrase
+      if (ph === 7 && s16 >= 12) { tom(t, [50, 47, 45, 41][s16 - 12]); if (s16 === 14 || s16 === 15) snare(t, 0.6); }
+      if (sec === 1 && ph === 7 && s16 === 0) riser(t, spb * 16);
+    }
+    if (s16 === 0 && ph === 0) { if (sec === 2) impact(t); else crash(t, 0.8); }
+  },
+  organ(st, t, spb) {                               // arena organ + crowd stomp-stomp-clap at stoppages
+    const s = st % 32;
+    const mel = { 0: [62, 2], 2: [66, 2], 4: [69, 2], 6: [74, 4], 10: [69, 2], 12: [71, 4] };
+    if (mel[s]) organ(t, [mel[s][0]], spb * mel[s][1] * 0.95);
+    const stabs = { 16: [62, 66, 69], 18: [62, 66, 69], 24: [67, 71, 74], 26: [67, 71, 74], 28: [69, 73, 76] };
+    if (stabs[s]) { organ(t, stabs[s], spb * (s === 28 ? 3.6 : 1.6)); kick(t, 0.8); clap(t, 1); }
+    if (s === 28) hey(t, 0.9);
+    if (s < 16 && s % 4 === 0) kick(t, 0.5);
+    if (s % 2 === 0) hat(t, 0.35);
+    if (s % 4 === 0) bass(t, [38, 38, 43, 45][Math.floor(s / 8)], spb * 3.6, 0.7);
+  },
+  goal(st, t, spb) {                                // goal song (8 bars, D major), then back to the organ
+    const s16 = st % 16, bar = Math.floor(st / 16), ci = bar % 4;
+    const roots = [38, 43, 45, 38], chords = [[62, 66, 69], [67, 71, 74], [69, 73, 76], [74, 78, 81]];
+    if (s16 === 0 && bar % 4 === 0) impact(t);
+    if (s16 % 2 === 0) kick(t, s16 % 4 === 0 ? 1 : 0.6);
+    if (s16 === 4 || s16 === 12) { snare(t, 1); clap(t, 0.8); }
+    hat(t, s16 % 2 ? 0.4 : 0.9, s16 % 4 === 2);
+    if (s16 % 2 === 0) bass(t, roots[ci] + (s16 % 8 === 6 ? 12 : 0), spb * 1.8);
+    if (s16 % 2 === 0) chug(t, roots[ci] + 12, s16 % 8 === 0 ? 1 : 0.6, spb * 1.4);
+    if ([0, 3, 6, 10, 12].includes(s16)) organ(t, chords[ci], spb * 1.8, 0.8);
+    const mel = [[74, 78, 81, 78], [79, 78, 76, 74], [76, 78, 79, 81], [86, 0, 0, 0]][ci];
+    if (s16 % 4 === 0 && mel[s16 / 4]) (bar < 4 ? brass : lead)(t, mel[s16 / 4] + (bar >= 4 ? 12 : 0), ci === 3 ? spb * 14 : spb * 3.6);
+    if (s16 === 12 && bar % 2 === 1) hey(t, 1.1);
+    if (bar === 7 && s16 >= 12) tom(t, [52, 50, 47, 45][s16 - 12]);
+    if (st === 127) music.queued = 'organ';
+  }
+};
+const music = {
+  bpm: TRACK_BPM.organ, step: 0, nextTime: 0, timer: null, track: 'organ', queued: null, intensity: 1, level: 1,
+  start() { musicFx(); this.nextTime = now() + 0.1; this.setLevel(); this.timer = setInterval(() => this.tick(), 25); },
+  want(name) { if (this.track === 'goal' && this.step < 128) return; if (this.track !== name && this.queued !== name) this.queued = name; },
+  goalSong() { this.track = 'goal'; this.bpm = TRACK_BPM.goal; this.step = 0; this.queued = null; this.setLevel(); },
+  setLevel() {
+    if (!audio) return;
+    const lvl = !musicOn ? 0 : this.track === 'play' ? 0.42 : 0.62;
+    musicBus.gain.setTargetAtTime(lvl, now(), 0.3);
+  },
+  tick() {
+    if (!audio) return;
+    if (this.nextTime < now() - 0.5) this.nextTime = now() + 0.05;   // tab was asleep: catch up
+    while (this.nextTime < now() + 0.15) {
+      if (this.step % 16 === 0) {
+        if (this.queued) { this.track = this.queued; this.queued = null; this.step = 0; this.bpm = TRACK_BPM[this.track]; this.setLevel(); }
+        this.level = this.intensity;                // the music changes gear at the start of a bar
+      }
+      const spb = 60 / this.bpm / 4;                // one 16th note
+      TRACKS[this.track](this.step, this.nextTime, spb);
+      this.nextTime += spb; this.step++;
+    }
+  }
+};
+function setMusic(on) {
+  musicOn = on;
+  try { localStorage.setItem('hockeyMusic', on ? 'on' : 'off'); } catch (e) {}
+  const btn = document.getElementById('musicBtn'); if (btn) btn.textContent = on ? '🎵' : '🔇';
+  music.setLevel();
+}
+addEventListener('pointerdown', initAudio, true);
+addEventListener('keydown', initAudio, true);
+
+// ---------- 3D scene (Three.js) ----------
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+const MAX_PR = Math.min(devicePixelRatio || 1, 1.5);   // sharpness (lowered automatically if the device struggles)
+let pixelRatio = MAX_PR;
+renderer.setPixelRatio(pixelRatio);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+document.getElementById('wrap').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#06080f');
+scene.fog = new THREE.Fog('#06080f', 1900, 3800);
+const camera = new THREE.PerspectiveCamera(40, 1, 5, 6000);
+
+// game (x, y) on the rink  ->  3D (x, z) on the ice
+const toX = x => x - W / 2, toZ = y => y - H / 2;
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const BH = 22, BT = 8;   // board height and thickness
+
+// Lights
+const hemi = new THREE.HemisphereLight(0xeaf3ff, 0x1a2030, 0.45); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff8ee, 0.75);
+sun.position.set(-160, 520, 260);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -600, right: 600, top: 600, bottom: -600, near: 50, far: 1600 });
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+
+// Shared materials and shape helpers
+const matCache = {};
+function mat(color, opts = {}) {
+  const key = color + JSON.stringify(opts);
+  return matCache[key] || (matCache[key] = new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.55 }, opts)));
+}
+function shadowed(m) { m.castShadow = true; m.receiveShadow = true; return m; }
+// ---- Speed: glue lots of small parts into a few big meshes (each separate mesh costs a "draw call") ----
+// Plain-coloured parts become one mesh that stores its colours per vertex; textured / see-through / glowing
+// parts are merged with others that use the very same material.
+const vcMats = new Map();
+function vcMaterial(rough, metal) {
+  const k = rough + '|' + metal;
+  if (!vcMats.has(k)) vcMats.set(k, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: rough, metalness: metal }));
+  return vcMats.get(k);
+}
+function bake(root, deep, shadows) {
+  root.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  const list = [];
+  if (deep) root.traverse(o => { if (o.isMesh && o !== root) list.push(o); });
+  else root.children.forEach(o => { if (o.isMesh) list.push(o); });
+  const buckets = new Map();
+  for (const m of list) {
+    if (Array.isArray(m.material) || m.userData.keep) continue;
+    const mt = m.material;
+    const plain = mt.isMeshStandardMaterial && !mt.map && !mt.transparent && !mt.vertexColors &&
+                  (!mt.emissive || mt.emissive.getHex() === 0 || mt.emissiveIntensity === 0);
+    const key = plain ? 'vc|' + Math.round(mt.roughness * 10) / 10 + '|' + Math.round(mt.metalness * 10) / 10 : mt;
+    if (!buckets.has(key)) buckets.set(key, { plain, mat: plain ? vcMaterial(Math.round(mt.roughness * 10) / 10, Math.round(mt.metalness * 10) / 10) : mt, parts: [] });
+    buckets.get(key).parts.push(m);
+  }
+  for (const b of buckets.values()) {
+    if (b.parts.length < 2 && !b.plain) continue;
+    const pos = [], nor = [], uv = [], col = [];
+    let cast = false, recv = false;
+    for (const m of b.parts) {
+      const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+      g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld));
+      const P = g.attributes.position.array, N = g.attributes.normal.array, U = g.attributes.uv ? g.attributes.uv.array : null;
+      for (let i = 0; i < P.length; i++) { pos.push(P[i]); nor.push(N[i]); }
+      for (let i = 0; i < P.length / 3; i++) { uv.push(U ? U[i * 2] : 0, U ? U[i * 2 + 1] : 0); if (b.plain) col.push(m.material.color.r, m.material.color.g, m.material.color.b); }
+      cast = cast || m.castShadow; recv = recv || m.receiveShadow;
+      m.parent.remove(m); g.dispose();
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    if (b.plain) geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    const mesh = new THREE.Mesh(geo, b.mat);
+    mesh.castShadow = shadows === undefined ? cast : shadows; mesh.receiveShadow = recv;
+    root.add(mesh);
+  }
+}
+const cyl = (rt, rb, h, m, seg = 16) => shadowed(new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m));
+const sph = (r, m) => shadowed(new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), m));
+const box = (w, h, d, m) => shadowed(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m));
+function limb(a, b, r, m) {          // a cylinder stretched from point a to point b
+  const dir = new THREE.Vector3().subVectors(b, a), len = dir.length();
+  const c = cyl(r, r, len, m, 10);
+  c.position.copy(a).addScaledVector(dir, 0.5);
+  c.quaternion.setFromUnitVectors(V(0, 1, 0), dir.normalize());
+  return c;
+}
+
+// ---- Arena lighting and reflections ----
+function makeEnvironment() {          // a fake "photo" of the arena roof for shiny reflections on ice, glass and helmets
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 0, 256);
+  grd.addColorStop(0, '#2a3346'); grd.addColorStop(0.45, '#151b29'); grd.addColorStop(0.55, '#3b4458'); grd.addColorStop(1, '#0c0f18');
+  g.fillStyle = grd; g.fillRect(0, 0, 512, 256);
+  g.fillStyle = '#fffbe8';
+  for (let i = 0; i < 16; i++) g.fillRect(i * 32 + 6, 22 + (i % 2) * 10, 18, 7);   // rafter lights
+  g.fillStyle = 'rgba(255,255,255,.35)';
+  for (let i = 0; i < 40; i++) g.fillRect(Math.random() * 512, 130 + Math.random() * 30, 2, 2);   // camera flashes in the stands
+  const t = new THREE.CanvasTexture(c);
+  t.mapping = THREE.EquirectangularReflectionMapping; t.encoding = THREE.sRGBEncoding;
+  const pm = new THREE.PMREMGenerator(renderer);
+  const env = pm.fromEquirectangular(t).texture;
+  pm.dispose();
+  return env;
+}
+scene.environment = makeEnvironment();
+
+// ---- Ice with painted markings (a real NHL-style layout) ----
+function rinkTexture() {
+  const S = 3, c = document.createElement('canvas');
+  c.width = W * S; c.height = H * S;
+  const g = c.getContext('2d'); g.scale(S, S);
+  g.fillStyle = '#20283a'; g.fillRect(0, 0, W, H);                  // outside the rounded corners
+  g.save();
+  g.beginPath();                                                     // clip to the rounded rink shape
+  g.moveTo(CR, 0); g.lineTo(W - CR, 0); g.arcTo(W, 0, W, CR, CR); g.lineTo(W, H - CR); g.arcTo(W, H, W - CR, H, CR);
+  g.lineTo(CR, H); g.arcTo(0, H, 0, H - CR, CR); g.lineTo(0, CR); g.arcTo(0, 0, CR, 0, CR); g.closePath(); g.clip();
+  const grd = g.createLinearGradient(0, 0, W, H);
+  grd.addColorStop(0, '#f6fbff'); grd.addColorStop(0.5, '#e9f3fb'); grd.addColorStop(1, '#f6fbff');
+  g.fillStyle = grd; g.fillRect(0, 0, W, H);
+  // skate marks, heavier near the nets and faceoff dots
+  g.lineWidth = 0.7;
+  for (let i = 0; i < 420; i++) {
+    const nearNet = i < 160, sx = nearNet ? W / 2 + (Math.random() - 0.5) * 260 : Math.random() * W;
+    const sy = nearNet ? (i % 2 ? G_TOP + Math.random() * 140 : G_BOT - Math.random() * 140) : Math.random() * H;
+    g.strokeStyle = `rgba(160,185,205,${0.12 + Math.random() * 0.2})`;
+    const a = Math.random() * Math.PI, l = 12 + Math.random() * 40;
+    g.beginPath(); g.moveTo(sx, sy); g.quadraticCurveTo(sx + Math.cos(a) * l * 0.5 + 6, sy + Math.sin(a) * l * 0.5, sx + Math.cos(a) * l, sy + Math.sin(a) * l); g.stroke();
+  }
+  g.fillStyle = 'rgba(255,255,255,.5)';                              // snow piled near the creases
+  for (let i = 0; i < 160; i++) g.fillRect(W / 2 + (Math.random() - 0.5) * 120, (i % 2 ? G_TOP + 40 : G_BOT - 40) + (Math.random() - 0.5) * 40, 1.5, 1.5);
+  const red = '#c8102e', blue = '#0b3fb3';
+  // center red line (with the classic white checks) and blue lines
+  g.fillStyle = red; g.fillRect(0, H / 2 - 4, W, 8);
+  g.fillStyle = 'rgba(255,255,255,.85)';
+  for (let x = 6; x < W; x += 22) g.fillRect(x, H / 2 - 1, 8, 2);
+  g.fillStyle = blue; g.fillRect(0, BL_TOP - 5, W, 10); g.fillRect(0, BL_BOT - 5, W, 10);
+  // goal lines
+  g.fillStyle = red; g.fillRect(0, G_TOP - 1.2, W, 2.4); g.fillRect(0, G_BOT - 1.2, W, 2.4);
+  // trapezoids behind the nets
+  g.strokeStyle = red; g.lineWidth = 2;
+  for (const [gl, end] of [[G_TOP, 0], [G_BOT, H]]) {
+    g.beginPath(); g.moveTo(W / 2 - 62, gl); g.lineTo(W / 2 - 82, end); g.moveTo(W / 2 + 62, gl); g.lineTo(W / 2 + 82, end); g.stroke();
+  }
+  // goal creases (D shape)
+  for (const top of [true, false]) {
+    const gl = top ? G_TOP : G_BOT, dir = top ? 1 : -1;
+    g.beginPath();
+    g.moveTo(W / 2 - 46, gl); g.lineTo(W / 2 - 46, gl + dir * 26);
+    g.arc(W / 2, gl + dir * 26, 46, top ? Math.PI : 0, top ? 0 : Math.PI, top);
+    g.lineTo(W / 2 + 46, gl); g.closePath();
+    g.fillStyle = 'rgba(70,150,255,.42)'; g.fill();
+    g.strokeStyle = red; g.lineWidth = 2; g.stroke();
+  }
+  // center circle + team logo
+  g.strokeStyle = blue; g.lineWidth = 3;
+  g.beginPath(); g.arc(W / 2, H / 2, 66, 0, Math.PI * 2); g.stroke();
+  drawLogo(g, W / 2, H / 2, 42, TEAM[0]);                            // home team logo at center ice
+  g.save(); g.globalAlpha = 0.85;
+  [[W / 2, G_TOP + 205], [W / 2, G_BOT - 205]].forEach(([x, y]) => {   // home team name painted in each zone
+    g.font = 'bold 17px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = TEAM[0].c1; g.fillText(TEAM[0].name.toUpperCase(), x, y);
+  });
+  g.restore();
+  g.fillStyle = blue; g.beginPath(); g.arc(W / 2, H / 2, 4, 0, Math.PI * 2); g.fill();
+  // referee's crease on the bench side
+  g.strokeStyle = red; g.lineWidth = 2; g.beginPath(); g.arc(0, H / 2, 40, -Math.PI / 2, Math.PI / 2); g.stroke();
+  // end-zone faceoff circles with hash marks and L-marks
+  [[0.24, 0.18], [0.76, 0.18], [0.24, 0.82], [0.76, 0.82]].forEach(([fx, fy]) => {
+    const cx = W * fx, cy = H * fy, r = 46;
+    g.strokeStyle = red; g.lineWidth = 2.5;
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 2;
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      g.beginPath(); g.moveTo(cx + sx * 9, cy + sy * Math.sqrt(r * r - 81)); g.lineTo(cx + sx * 9, cy + sy * (Math.sqrt(r * r - 81) + 9)); g.stroke();
+      g.beginPath(); g.moveTo(cx + sx * 5, cy + sy * 4); g.lineTo(cx + sx * 16, cy + sy * 4); g.moveTo(cx + sx * 5, cy + sy * 4); g.lineTo(cx + sx * 5, cy + sy * 13); g.stroke();
+    }
+    g.fillStyle = red; g.beginPath(); g.arc(cx, cy, 6, 0, Math.PI * 2); g.fill();
+  });
+  g.fillStyle = red;
+  [[0.24, 0.37], [0.76, 0.37], [0.24, 0.63], [0.76, 0.63]].forEach(([fx, fy]) => {
+    g.beginPath(); g.arc(W * fx, H * fy, 5, 0, Math.PI * 2); g.fill();
+  });
+  g.restore();
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+const ice = new THREE.Mesh(new THREE.PlaneGeometry(W, H),
+  new THREE.MeshStandardMaterial({ map: rinkTexture(), roughness: 0.12, metalness: 0, envMapIntensity: 1.1 }));
+ice.rotation.x = -Math.PI / 2; ice.receiveShadow = true; scene.add(ice);
+
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(2600, 3000), mat('#121726', { roughness: 0.95 }));
+floor.rotation.x = -Math.PI / 2; floor.position.y = -5; floor.receiveShadow = true; scene.add(floor);
+
+// ---- Boards (rounded corners), ads, kick plate, glass and stanchions ----
+function rinkPath() {                     // points around the inside of the boards, in game coordinates
+  const pts = [], arc = (cx, cy, a0) => { for (let i = 0; i <= 10; i++) { const a = a0 + (i / 10) * Math.PI / 2; pts.push([cx + Math.cos(a) * CR, cy + Math.sin(a) * CR, i === 0 || i === 10]); } };
+  arc(W - CR, CR, -Math.PI / 2); arc(W - CR, H - CR, 0); arc(CR, H - CR, Math.PI / 2); arc(CR, CR, Math.PI);
+  return pts;
+}
+function adTexture() {
+  const c = document.createElement('canvas'); c.width = 2048; c.height = 64;
+  const g = c.getContext('2d');
+  const ads = [['FROSTY COLA', '#c8102e', '#fff'], ['GLACIER BANK', '#0b3fb3', '#fff'], ['PUCK STOP PIZZA', '#ffd23f', '#1b1b1b'],
+               ['SLAPSHOT SPORTS', '#111', '#ffd23f'], ['NORTHWIND AIR', '#ffffff', '#0b3fb3'], ['ICE KINGS', '#1a8a4a', '#fff'],
+               ['BLUE LINE BURGERS', '#f39c12', '#fff'], ['TOP SHELF TV', '#6b2bb8', '#fff']];
+  const w = 2048 / ads.length;
+  ads.forEach(([txt, bg, fg], i) => {
+    g.fillStyle = bg; g.fillRect(i * w, 0, w, 64);
+    g.fillStyle = fg; g.font = 'bold 30px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(txt, i * w + w / 2, 33, w - 20);
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(i * w, 0, 2, 64);
+  });
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.wrapS = THREE.RepeatWrapping;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+const adTex = adTexture();
+const glassMat = new THREE.MeshStandardMaterial({ color: '#dff2ff', transparent: true, opacity: 0.12, roughness: 0.05, metalness: 0, depthWrite: false, envMapIntensity: 1.5 });
+const boardMat = mat('#f4f6f8', { roughness: 0.4 }), kickMat = mat('#ffcc1a', { roughness: 0.5 }), capMat = mat('#c9d0d8', { roughness: 0.35, metalness: 0.2 });
+const steelMat = mat('#9aa4b0', { roughness: 0.3, metalness: 0.8 });
+const boardsGroup = new THREE.Group(); scene.add(boardsGroup);
+(function buildBoards() {
+  const pts = rinkPath();
+  let adOffset = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length];
+    const len = Math.hypot(bx - ax, by - ay); if (len < 0.5) continue;
+    const ux = (bx - ax) / len, uy = (by - ay) / len, nx = uy, ny = -ux;        // outward normal (path runs clockwise in game space)
+    const mx = (ax + bx) / 2, my = (ay + by) / 2, rot = Math.atan2(-(by - ay), bx - ax);
+    const seg = new THREE.Group();
+    seg.position.set(toX(mx), 0, toZ(my)); seg.rotation.y = rot; boardsGroup.add(seg);
+    // local frame: x along the boards, z = outward (+) / toward the ice (-)
+    const sideOut = (toX(mx + nx) - toX(mx)) * Math.sin(rot) + (toZ(my + ny) - toZ(my)) * Math.cos(rot) > 0 ? 1 : -1;
+    const wall = box(len + 0.6, BH, BT, boardMat); wall.position.set(0, BH / 2, sideOut * BT / 2); seg.add(wall);
+    const kick = box(len + 0.6, 4, 0.8, kickMat); kick.position.set(0, 2, -sideOut * 0.4); seg.add(kick);
+    const cap = box(len + 0.6, 2.4, BT + 3, capMat); cap.position.set(0, BH + 1.2, sideOut * BT / 2); seg.add(cap);
+    const gl = new THREE.Mesh(new THREE.BoxGeometry(len + 0.3, 48, 1.2), glassMat); gl.position.set(0, BH + 2.4 + 24, sideOut * 2); seg.add(gl);
+    if (len > 100) {                                        // long straight boards carry the ads
+      const t = adTex.clone(); t.needsUpdate = true; t.repeat.set(len / 520, 1); t.offset.x = adOffset; adOffset += 0.37;
+      const ad = new THREE.Mesh(new THREE.PlaneGeometry(len, BH - 8), new THREE.MeshStandardMaterial({ map: t, roughness: 0.45 }));
+      ad.position.set(0, 4 + (BH - 8) / 2 + 0.5, -sideOut * 0.45);
+      ad.rotation.y = sideOut > 0 ? Math.PI : 0; seg.add(ad);
+      for (let k = -len / 2; k <= len / 2; k += 80) {        // glass stanchions
+        const st = box(1.6, 48, 2.6, steelMat); st.position.set(k, BH + 2.4 + 24, sideOut * 2); seg.add(st);
+      }
+    }
+  }
+})();
+
+// ---- Benches (teammates sitting) on the left side ----
+let benchGroup = null;
+function buildBenches() {
+  if (benchGroup) scene.remove(benchGroup);
+  benchGroup = new THREE.Group(); scene.add(benchGroup); benchGroup.userData.bake = true;
+  const deck = box(34, 3, 300, mat('#2a3142', { roughness: 0.9 })); deck.position.set(-W / 2 - BT - 20, 1.5, 0); benchGroup.add(deck);
+  [[-1, 0], [1, 1]].forEach(([side, team]) => {
+    const z0 = side * 80, bench = box(10, 10, 120, mat('#3a2a1c')); bench.position.set(-W / 2 - BT - 30, 8, z0); benchGroup.add(bench);
+    for (let k = 0; k < 5; k++) {
+      const z = z0 - 48 + k * 24, j = mat(TEAM[team].color), h = mat(TEAM[team].helmet, { roughness: 0.3 });
+      const body = cyl(8, 7, 20, j); body.position.set(-W / 2 - BT - 28, 24, z); benchGroup.add(body);
+      const head = sph(6, h); head.position.set(-W / 2 - BT - 26, 39, z); benchGroup.add(head);
+    }
+  });
+}
+buildBenches();
+bake(benchGroup, true, false);
+
+// ---- Nets: red frame, white mesh, sitting out from the end boards ----
+function gridTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const g = c.getContext('2d');
+  g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = 2;
+  g.strokeRect(0, 0, 32, 32);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(12, 4);
+  return t;
+}
+const netMat = new THREE.MeshBasicMaterial({ map: gridTexture(), transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false });
+const hiddenMat = new THREE.MeshBasicMaterial({ visible: false });
+const lamps = [];
+function makeNet(end) {          // end -1 = far net (blue's), +1 = near net (yours)
+  const g = new THREE.Group(), red = mat('#d4002a', { roughness: 0.25, metalness: 0.3 }), pad = mat('#f2f2f2', { roughness: 0.7 });
+  for (const s of [-1, 1]) { const p = cyl(2.6, 2.6, NH, red, 12); p.position.set(s * GOAL / 2, NH / 2, 0); g.add(p); }
+  const bar = cyl(2.6, 2.6, GOAL, red, 12); bar.rotation.z = Math.PI / 2; bar.position.y = NH; g.add(bar);
+  const base = box(GOAL, 2.5, 3, pad); base.position.set(0, 1.25, -ND); g.add(base);
+  for (const s of [-1, 1]) { const sb = box(3, 2.5, ND, pad); sb.position.set(s * GOAL / 2, 1.25, -ND / 2); g.add(sb); }
+  const net = new THREE.Mesh(new THREE.BoxGeometry(GOAL, NH, ND), [netMat, netMat, netMat, hiddenMat, hiddenMat, netMat]);
+  net.position.set(0, NH / 2, -ND / 2); g.add(net);
+  g.position.set(0, 0, end === -1 ? toZ(G_TOP) : toZ(G_BOT));
+  g.rotation.y = end === -1 ? 0 : Math.PI;
+  scene.add(g); bake(g, true);
+  // goal light on top of the glass behind the net
+  const lampMat = new THREE.MeshStandardMaterial({ color: '#550000', emissive: '#ff1a1a', emissiveIntensity: 0 });
+  const lamp = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 10, 16), lampMat);
+  lamp.position.set(0, BH + 56, end * (H / 2 + 10));
+  const lampLight = { intensity: 0, position: new THREE.Vector3() };
+  lampLight.position.copy(lamp.position);
+  scene.add(lamp);
+  lamps.push({ mat: lampMat, light: lampLight, on: 0 });
+}
+makeNet(-1); makeNet(1);   // lamps[0] = far net (you score here), lamps[1] = your net
+bake(boardsGroup, true, false);
+
+// ---- Crowd in the stands ----
+function crowdTexture() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#171c2b'; g.fillRect(0, 0, 1024, 512);
+  const shirts = [TEAM[0].c1, TEAM[0].c1, TEAM[0].c1, TEAM[0].c2, TEAM[0].c1, TEAM[1].c1, '#ffffff', '#222', '#555', shade(TEAM[0].c1, -0.3), '#2b2b40'];
+  for (let row = 0; row < 26; row++) {
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, row * 19.5 + 15, 1024, 4);                       // seat rows
+    for (let i = 0; i < 64; i++) {
+      if (Math.random() < 0.06) continue;                                                           // an empty seat
+      const x = i * 16 + (row % 2) * 8 + Math.random() * 3, y = row * 19.5 + 6;
+      g.fillStyle = shirts[(Math.random() * shirts.length) | 0];
+      g.beginPath(); g.ellipse(x, y + 7, 6, 5, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = ['#f1c27d', '#e0ac69', '#8d5524', '#c68642', '#ffdbac', '#5c3a21'][(Math.random() * 6) | 0];
+      g.beginPath(); g.arc(x, y, 3.6, 0, Math.PI * 2); g.fill();
+      if (Math.random() < 0.12) { g.fillStyle = g.fillStyle; g.fillRect(x - 6, y - 9, 2, 8); }   // arms up
+    }
+  }
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding;
+  t.wrapS = THREE.RepeatWrapping;
+  return t;
+}
+const crowdTex = crowdTexture();
+const stands = [];
+function stand(x, z, rotY, width, back) {
+  const grp = new THREE.Group(), tilt = 0.78, h = 260;
+  const tex = crowdTex.clone(); tex.needsUpdate = true; tex.repeat.set(width / 360, 1);
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(width, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+  p.userData.width = width;
+  p.rotation.x = -tilt;
+  p.position.set(0, 38 + (h / 2) * Math.sin(Math.PI / 2 - tilt), -(h / 2) * Math.cos(Math.PI / 2 - tilt));
+  grp.add(p);
+  const wall = box(width, 38, 6, mat('#0d1220', { roughness: 0.9 })); wall.position.set(0, 19, 0); grp.add(wall);   // front wall of the stands
+  { const n = Math.round(width / 5), pos = new Float32Array(n * 3);     // phone flashlights (lit during the light show)
+    for (let i = 0; i < n; i++) { const u = (Math.random() - 0.5) * width, v = 8 + Math.random() * 245;
+      pos[i * 3] = u; pos[i * 3 + 1] = 38 + v * Math.cos(tilt) + 1.5 * Math.sin(tilt); pos[i * 3 + 2] = -v * Math.sin(tilt) + 1.5 * Math.cos(tilt); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: '#fffbe6', size: 3.4, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    pts.visible = false; pts.userData.ph = Math.random() * 6; grp.add(pts); phonePts.push(pts); }
+  grp.position.set(x, 0, z); grp.rotation.y = rotY;
+  scene.add(grp); stands.push({ grp, tex, back: !!back, mesh: p });
+}
+stand(0, -(H / 2 + BT + 70), 0, W + 360);
+stand(-(W / 2 + BT + 70), 0, Math.PI / 2, H + 240);
+stand(W / 2 + BT + 50, 0, -Math.PI / 2, H + 240);
+stand(0, H / 2 + BT + 110, Math.PI, W + 360, true);   // behind your net (only shown in the close-up camera views)
+
+// ---- Roof: rafters with lights ----
+const roofGroup = new THREE.Group(); scene.add(roofGroup);
+const roofLights = []; let rafterMat = null;
+(function roof() {
+  const lightMat = new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff6dd', emissiveIntensity: 1.4 }); rafterMat = lightMat;
+  for (let i = -2; i <= 2; i++) for (let j = -3; j <= 3; j++) {
+    const l = new THREE.Mesh(new THREE.BoxGeometry(26, 3, 14), lightMat); l.position.set(i * 150, 560, j * 190); roofGroup.add(l);
+  }
+  [[-160, -260], [160, -260], [-160, 260], [160, 260]].forEach(([x, z]) => {   // a few lamps over the ice for highlights
+    // (no real lights up here any more: the environment map gives the ice its shine, which is much faster)
+  });
+})();
+
+// ---- Jumbotron over center ice ----
+const jumboCanvas = document.createElement('canvas'); jumboCanvas.width = 512; jumboCanvas.height = 256;
+const jumboTex = new THREE.CanvasTexture(jumboCanvas); jumboTex.encoding = THREE.sRGBEncoding;
+const jumbo = new THREE.Group();
+(function buildJumbo() {
+  const frame = box(150, 80, 150, mat('#0b0e16', { roughness: 0.6, metalness: 0.4 })); jumbo.add(frame);
+  const screenMat = new THREE.MeshBasicMaterial({ map: jumboTex });
+  for (let k = 0; k < 4; k++) {
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(140, 70), screenMat);
+    const a = k * Math.PI / 2; sc.position.set(Math.sin(a) * 75.5, 0, Math.cos(a) * 75.5); sc.rotation.y = a; jumbo.add(sc);
+  }
+  const ring = cyl(78, 78, 8, new THREE.MeshStandardMaterial({ color: '#111', emissive: '#c8102e', emissiveIntensity: 0.8 }), 32); ring.position.y = -46; jumbo.add(ring);
+  jumbo.position.set(0, 300, 0); scene.add(jumbo); bake(jumbo, true, false);
+})();
+let jumboKey = '';
+function drawJumbo(text2) {
+  const g = jumboCanvas.getContext('2d');
+  g.fillStyle = '#05070c'; g.fillRect(0, 0, 512, 256);
+  [0, 1].forEach(i => {
+    const x0 = i ? 266 : 16, T = TEAM[i];
+    g.fillStyle = T.c1; g.fillRect(x0, 20, 230, 120);
+    drawLogo(g, x0 + 42, 80, 30, T);
+    g.fillStyle = inkOn(T.c1); g.textAlign = 'center';
+    g.font = 'bold 28px system-ui,sans-serif'; g.fillText(T.abbr, x0 + 150, 52);
+    g.font = 'bold 72px system-ui,sans-serif'; g.fillText(score[i], x0 + 150, 124);
+  });
+  g.fillStyle = '#ffd23f'; g.font = 'bold 46px ui-monospace,monospace'; g.fillText(text2, 256, 205);
+  jumboTex.needsUpdate = true;
+}
+
+// ---- Players ----
+function jerseyTexture(team, number, ref) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 128;
+  const g = c.getContext('2d');
+  if (ref) {                                                  // referee stripes
+    for (let x = 0; x < 256; x += 16) { g.fillStyle = (x / 16) % 2 ? '#111' : '#f4f4f4'; g.fillRect(x, 0, 16, 128); }
+  } else {
+    const T = TEAM[team];
+    g.fillStyle = T.color; g.fillRect(0, 0, 256, 128);
+    g.fillStyle = T.trim; g.fillRect(0, 94, 256, 10); g.fillStyle = T.away ? T.c2 : '#ffffff'; g.fillRect(0, 104, 256, 5);   // hem stripes
+    g.font = 'bold 64px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const ink = T.away ? T.c1 : inkOn(T.color);
+    g.lineWidth = 6; g.strokeStyle = T.away ? T.c2 : T.trim; g.strokeText(number, 128, 56); g.fillStyle = ink; g.fillText(number, 128, 56);   // number on the back
+    for (const cx of [0, 256]) drawLogo(g, cx, 52, 22, T);    // team logo on the chest (wraps around the front)
+  }
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function sockTexture(team) {
+  const c = document.createElement('canvas'); c.width = 32; c.height = 64;
+  const g = c.getContext('2d');
+  g.fillStyle = TEAM[team].color; g.fillRect(0, 0, 32, 64);
+  g.fillStyle = TEAM[team].trim; g.fillRect(0, 22, 32, 7); g.fillStyle = TEAM[team].away ? TEAM[team].c2 : '#fff'; g.fillRect(0, 33, 32, 4);
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+}
+function makeSkater(team, isYou, number, ref) {
+  const T = TEAM[team], root = new THREE.Group(), body = new THREE.Group();
+  root.add(body);
+  const jersey = new THREE.MeshStandardMaterial({ map: jerseyTexture(team, number, ref), roughness: 0.6 });
+  const sleeve = ref ? mat('#f4f4f4') : mat(T.color), dark = mat('#1c1f2b');
+  const helm = ref ? mat('#111', { roughness: 0.25 }) : mat(T.helmet, { roughness: 0.25, metalness: 0.1 });
+  const sock = ref ? mat('#111') : new THREE.MeshStandardMaterial({ map: sockTexture(team), roughness: 0.7 });
+  const glove = ref ? mat('#111') : mat(T.helmet, { roughness: 0.8 });
+  const steel = mat('#d5dde6', { metalness: 0.9, roughness: 0.2 });
+  const legs = [];
+  for (const s of [-1, 1]) {
+    const hip = new THREE.Group(); hip.position.set(s * 6, 22, 0);
+    const leg = cyl(4.6, 4, 19, sock); leg.position.y = -9.5; hip.add(leg);
+    const boot = box(6, 5, 12, mat('#111', { roughness: 0.35 })); boot.position.set(0, -18.5, 2); hip.add(boot);
+    const blade = box(1.2, 2, 15, steel); blade.position.set(0, -21.5, 2); hip.add(blade);
+    body.add(hip); legs.push(hip);
+  }
+  const pants = cyl(12, 11, 10, ref ? mat('#111') : dark); pants.position.y = 26; body.add(pants);
+  const torso = cyl(13, 11.5, 22, jersey, 24); torso.position.y = 41; body.add(torso);
+  const shoulders = sph(13, sleeve); shoulders.scale.set(1.15, 0.6, 0.9); shoulders.position.y = 52; body.add(shoulders);
+  const neck = cyl(4, 4, 4, mat('#e0ac69')); neck.position.y = 56; body.add(neck);
+  const head = sph(8.5, helm); head.position.y = 62; body.add(head);
+  const visor = box(11, 3.5, 3, new THREE.MeshStandardMaterial({ color: '#223', roughness: 0.08, transparent: true, opacity: 0.8 }));
+  visor.position.set(0, 62, 7.3); body.add(visor);
+  root.userData = { legs, body, phase: Math.random() * 6 };
+  if (ref) {
+    for (const s of [-1, 1]) {
+      const arm = limb(V(s * 13, 50, 0), V(s * 15, 33, 4), 3.4, sleeve); body.add(arm);
+      const band = cyl(3.7, 3.7, 3, mat('#ff6a00'), 10); band.position.set(s * 14, 45, 1.5); body.add(band);   // orange armbands
+    }
+  } else {
+    // arms hold the stick, blade on the ice in front
+    const handL = V(-3, 40, 13), handR = V(7, 30, 17);
+    body.add(limb(V(-13, 50, 0), handL, 3.6, sleeve));
+    body.add(limb(V(13, 50, 0), handR, 3.6, sleeve));
+    body.add(sph(4.2, glove).translateX(handL.x).translateY(handL.y).translateZ(handL.z));
+    body.add(sph(4.2, glove).translateX(handR.x).translateY(handR.y).translateZ(handR.z));
+    body.add(limb(V(-5, 44, 10), V(16, 2.5, 24), 1.6, mat('#1b1b1b', { roughness: 0.3 })));   // carbon stick
+    const tape = limb(V(-5, 44, 10), V(-3.4, 40.3, 11.4), 1.9, mat('#fff')); body.add(tape);
+    const bl = box(14, 4, 2.4, mat('#111')); bl.position.set(19, 2.2, 24.5); body.add(bl);
+    const blTape = box(9, 4.2, 2.6, mat('#f4f4f4')); blTape.position.set(19.5, 2.2, 24.5); body.add(blTape);
+  }
+  if (isYou) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(SR + 9, 2, 8, 48), new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.75 }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 1.2; root.add(ring);
+    const arrow = new THREE.Mesh(new THREE.ConeGeometry(7, 14, 4), new THREE.MeshBasicMaterial({ color: '#ffd23f' }));
+    arrow.rotation.x = Math.PI; arrow.position.y = 90; root.add(arrow);
+    root.userData.arrow = arrow;
+  }
+  legs.forEach(h => bake(h, false)); bake(body, false);
+  scene.add(root);
+  return root;
+}
+
+function makeGoalie(team, number) {
+  const T = TEAM[team], root = new THREE.Group(), body = new THREE.Group();
+  root.add(body);
+  const jersey = new THREE.MeshStandardMaterial({ map: jerseyTexture(team, number), roughness: 0.6 });
+  const sleeve = mat(T.color), white = mat('#ffffff', { roughness: 0.6 }), dark = mat('#1c1f2b'), helm = mat(T.helmet);
+  for (const s of [-1, 1]) {
+    const pad = box(11, 26, 9, white); pad.position.set(s * 11, 13, 4); pad.rotation.z = s * 0.12; body.add(pad);
+    const band = box(11.3, 4, 9.3, sleeve); band.position.set(s * 11, 19, 4); band.rotation.z = s * 0.12; body.add(band);
+    const band2 = box(11.3, 2, 9.3, sleeve); band2.position.set(s * 11, 8, 4); band2.rotation.z = s * 0.12; body.add(band2);
+  }
+  const pants = cyl(15, 14, 10, dark); pants.position.y = 29; body.add(pants);
+  const torso = cyl(17, 15, 20, jersey, 24); torso.position.y = 43; body.add(torso);
+  const chest = sph(17, sleeve); chest.scale.set(1.1, 0.55, 0.9); chest.position.y = 53; body.add(chest);
+  const mask = sph(9.5, mat(T.helmet, { roughness: 0.2 })); mask.position.set(0, 63, 2); body.add(mask);
+  const cage = box(9, 7, 2, mat('#ddd', { metalness: 0.8, roughness: 0.3 })); cage.position.set(0, 61, 11); body.add(cage);
+  body.add(limb(V(-15, 50, 0), V(-19, 39, 9), 4, sleeve));
+  body.add(limb(V(15, 50, 0), V(19, 37, 9), 4, sleeve));
+  const glove = sph(7.5, white); glove.scale.set(1, 1.2, 0.8); glove.position.set(-20, 38, 11); body.add(glove);
+  const blocker = box(4, 15, 11, white); blocker.position.set(20, 36, 11); body.add(blocker);
+  body.add(limb(V(19, 34, 13), V(5, 3, 23), 2, mat('#1b1b1b')));
+  const paddle = box(24, 4.5, 3.5, mat('#f4f4f4')); paddle.position.set(-3, 2.3, 24); body.add(paddle);
+  root.userData = { legs: [], body, phase: 0, goalie: true };
+  bake(body, false);
+  scene.add(root);
+  return root;
+}
+
+const NUMBERS = new Map([[you, '9'], [redMate, '19'], [redGoal, '31'], [blueA, '22'], [blueB, '44'], [blueGoal, '35']]);
+const meshes = new Map();
+function buildPlayerMeshes() {
+  players.forEach(p => {
+    const old = meshes.get(p);
+    if (old) { scene.remove(old); old.traverse(o => { if (o.material && o.material.map) o.material.map.dispose(); }); }
+    meshes.set(p, p.role === 'goalie' ? makeGoalie(p.team, NUMBERS.get(p)) : makeSkater(p.team, p === you, NUMBERS.get(p)));
+  });
+}
+buildPlayerMeshes();
+
+// switch every team-coloured thing in the arena to the chosen teams
+// your number, and make sure nobody else on your team wears it
+function setNumbers() {
+  const mine = myNumber || '9';
+  NUMBERS.set(you, mine);
+  const spare = ['19', '17', '91', '27', '11', '31', '30', '35', '1'].filter(n => n !== mine);
+  NUMBERS.set(redMate, spare[0]);
+  NUMBERS.set(redGoal, spare.find(n => ['31', '30', '35', '1'].includes(n)));
+}
+function applyTeams() {
+  setupTeams();
+  setNumbers();
+  buildPlayerMeshes();
+  buildBenches(); bake(benchGroup, true, false);
+  const oldIce = ice.material.map; ice.material.map = rinkTexture(); ice.material.needsUpdate = true; oldIce.dispose();
+  const base = crowdTexture();
+  stands.forEach(st => { const t = base.clone(); t.needsUpdate = true; t.repeat.set(st.mesh.userData.width / 360, 1); st.mesh.material.map = t; st.tex = t; });
+  const hud = document.getElementById('hud');
+  [0, 1].forEach(i => {
+    const box = hud.children[i === 0 ? 0 : 2];
+    box.style.background = TEAM[i].c1; box.style.color = inkOn(TEAM[i].c1);
+    document.getElementById('hudN' + i).textContent = TEAM[i].abbr;
+  });
+  jumboKey = '';
+}
+
+// the referee (just skates near the play and drops the puck at faceoffs)
+const ref = { x: W - 60, y: H / 2 + 60, vx: 0, vy: 0, r: 20 };
+const refMesh = makeSkater(0, false, '', true);
+
+const puckMesh = cyl(8, 8, 5, mat('#0c0c0c', { roughness: 0.35 }), 28);
+scene.add(puckMesh);
+const puckShadow = new THREE.Mesh(new THREE.CircleGeometry(8, 20), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.3, depthWrite: false }));
+puckShadow.rotation.x = -Math.PI / 2; scene.add(puckShadow);
+// ---- Special goals: lights out + spotlight on the scorer, and hats for a hat trick ----
+const spot = new THREE.SpotLight('#fff3dc', 0, 1500, 0.11, 0.5, 1);
+spot.position.set(0, 520, 0); scene.add(spot); scene.add(spot.target);
+const beam = new THREE.Mesh(new THREE.ConeGeometry(Math.tan(0.11) * 520, 520, 40, 1, true),
+  new THREE.MeshBasicMaterial({ color: '#fff1cf', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+beam.visible = false; scene.add(beam);
+let envMats = [], lastDark = -1;
+function collectEnvMats() {               // everything shiny gets dimmed too when the lights go out
+  envMats = [];
+  scene.traverse(o => {
+    (o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []).forEach(m => {
+      if (m && m.isMeshStandardMaterial) { if (m.userData.env0 === undefined) m.userData.env0 = m.envMapIntensity; envMats.push(m); }
+    });
+  });
+}
+function startShow(scorer, frames) { collectEnvMats(); show.t = frames; show.scorer = scorer; }
+function applyDark(k) {
+  hemi.intensity = 0.45 * (1 - 0.97 * k); sun.intensity = 0.75 * (1 - k);
+  roofLights.forEach(l => { l.intensity = 0.28 * (1 - k); });
+  if (rafterMat) rafterMat.emissiveIntensity = 1.4 * (1 - 0.92 * k);
+  envMats.forEach(m => { m.envMapIntensity = m.userData.env0 * (1 - 0.95 * k); });
+  spot.intensity = 6 * k; beam.visible = k > 0.01; beam.material.opacity = 0.17 * k;
+}
+const hats = [];
+function makeHat() {
+  const cols = [TEAM[0].c1, TEAM[0].c1, TEAM[1].c1, '#111111', '#f4f4f4', '#c8102e', '#1d4fd8', '#2b6e2b', '#7a5230', '#ffb000', TEAM[0].c2];
+  const g = new THREE.Group(), m = mat(cols[(Math.random() * cols.length) | 0], { roughness: 0.85 }), type = Math.random();
+  const dome = r => new THREE.Mesh(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), m);
+  if (type < 0.45) {                                    // ball cap
+    const crown = dome(6); g.add(crown); const visor = box(9, 0.6, 6, m); visor.position.set(0, 0.3, 7); g.add(visor);
+  } else if (type < 0.75) {                             // winter beanie with a pom-pom
+    const crown = dome(5.8); crown.scale.y = 1.3; g.add(crown);
+    const cuff = cyl(6, 6, 2.4, mat('#ffffff'), 14); cuff.position.y = 1.2; g.add(cuff);
+    const pom = sph(2, mat('#ffffff')); pom.position.y = 8.3; g.add(pom);
+  } else {                                              // wide-brim hat
+    const crown = cyl(4.6, 5.2, 6, m, 14); crown.position.y = 3.4; g.add(crown);
+    const brim = cyl(9.5, 9.5, 0.7, m, 20); brim.position.y = 0.4; g.add(brim);
+    const band = cyl(5.25, 5.25, 1.2, mat('#222'), 14); band.position.y = 1.4; g.add(band);
+  }
+  bake(g, false, false);
+  g.scale.setScalar(1.15);
+  return g;
+}
+function throwHats(n = 48) {                            // fans throw their hats onto the ice
+  for (let i = 0; i < n; i++) {
+    const g = makeHat(), side = Math.random();
+    let sx, sz;
+    if (side < 0.35) { sx = (Math.random() - 0.5) * (W + 200); sz = -(H / 2 + 110 + Math.random() * 80); }
+    else if (side < 0.85) { const sgn = Math.random() < 0.5 ? -1 : 1; sx = sgn * (W / 2 + 90 + Math.random() * 70); sz = (Math.random() - 0.5) * (H + 100); }
+    else { sx = (Math.random() - 0.5) * (W + 200); sz = H / 2 + 140 + Math.random() * 60; }
+    const sy = 115 + Math.random() * 80;
+    const land = { x: sx * (0.3 + Math.random() * 0.6) + W / 2, y: sz * (0.25 + Math.random() * 0.65) + H / 2 };
+    land.x = clamp(land.x, 18, W - 18); land.y = clamp(land.y, 18, H - 18); cornerPush(land, 14);
+    const tx = toX(land.x), tz = toZ(land.y), T = 45 + Math.random() * 40, gr = 0.12;
+    g.position.set(sx, sy, sz); g.visible = false; scene.add(g);
+    hats.push({ g, vx: (tx - sx) / T, vz: (tz - sz) / T, vy: (0.5 * gr * T * T - sy) / T, gr, delay: (Math.random() * 130) | 0,
+                spin: (Math.random() - 0.5) * 0.35, landed: false, sink: 0 });
+  }
+}
+function clearHats() { hats.forEach(h => { if (!h.sink) { h.sink = 1; h.delay = 0; h.g.visible = true; } }); }
+function celebStep() {                                  // runs 60 times a second, even while play is stopped
+  if (foPhase === 2) { foDropT++; puck.h = Math.max(0, 32 - 0.32 * foDropT * foDropT); }   // the puck falling to the ice
+  else if (foPhase === 1) puck.h = 32;
+  if (show.t > 0) show.t--;
+  for (const h of hats) {
+    if (h.delay > 0) { h.delay--; continue; }
+    h.g.visible = true;
+    if (h.sink > 0) { h.sink++; h.g.position.y -= 0.3; h.g.scale.multiplyScalar(0.94); continue; }   // cleared off the ice
+    if (!h.landed) {
+      h.vy -= h.gr; h.g.position.x += h.vx; h.g.position.y += h.vy; h.g.position.z += h.vz;
+      h.g.rotation.x += h.spin; h.g.rotation.z += h.spin * 0.7;
+      if (h.g.position.y <= 0.3 && h.vy < 0) {
+        h.landed = true; h.g.position.y = 0.3; h.g.rotation.set(0, Math.random() * Math.PI * 2, 0); h.vx *= 0.35; h.vz *= 0.35;
+      }
+    } else { h.g.position.x += h.vx; h.g.position.z += h.vz; h.vx *= 0.9; h.vz *= 0.9; }
+  }
+  for (let i = hats.length - 1; i >= 0; i--) if (hats[i].sink > 45) { scene.remove(hats[i].g); hats.splice(i, 1); }
+}
+
+// speed trail behind hard shots
+const trail = [];
+for (let i = 0; i < 8; i++) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 4, 16), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false }));
+  scene.add(m); trail.push(m);
+}
+const puckHist = [];
+// aim target in the net + aim line on the ice
+const aimRing = new THREE.Group();
+(function () {
+  const m = new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.5, depthWrite: false });
+  aimRing.add(new THREE.Mesh(new THREE.TorusGeometry(9, 1.4, 8, 32), m));
+  aimRing.add(new THREE.Mesh(new THREE.CircleGeometry(2.4, 12), m));
+  aimRing.userData.m = m;
+  scene.add(aimRing); aimRing.visible = false;
+})();
+const aimLine = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.55, depthWrite: false }));
+aimLine.visible = false; scene.add(aimLine);
+// ice spray when skaters stop or turn hard
+const spray = [];
+const sprayMat = new THREE.MeshBasicMaterial({ color: '#f4fbff', transparent: true, opacity: 0.85, depthWrite: false });
+for (let i = 0; i < 60; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(1.5, 6, 4), sprayMat); m.visible = false; scene.add(m); spray.push({ m, life: 0, vx: 0, vy: 0, vz: 0 }); }
+function emitSpray(x, z, dirx, dirz, n) {
+  for (let k = 0; k < n; k++) {
+    const s = spray.find(q => q.life <= 0); if (!s) return;
+    s.life = 18 + Math.random() * 10; s.m.visible = true;
+    s.m.position.set(x + (Math.random() - 0.5) * 8, 2, z + (Math.random() - 0.5) * 8);
+    s.vx = dirx * (1 + Math.random() * 2) + (Math.random() - 0.5); s.vz = dirz * (1 + Math.random() * 2) + (Math.random() - 0.5); s.vy = 1 + Math.random() * 1.6;
+  }
+}
+
+// pass arrow on the ice
+const passArrow = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.8, depthWrite: false }));
+passArrow.visible = false; scene.add(passArrow);
+
+// ---- Camera: Roblox-style third-person camera, plus three other views ----
+const VIEWS = ['Roblox', 'Whole rink', 'Broadcast', 'Top-down'];
+let viewIdx = 0, zoom = 1;
+let camYaw = 0, camPitch = 0.48;          // Roblox camera angles (turn left/right, look up/down)
+const fitted = {};
+const camPos = V(0, 0, 0), camLook = V(0, 0, 0);
+
+// find how far back the camera must be (at a given angle) to fit the whole rink on screen
+function fitView(elev, targetZ) {
+  const target = V(0, 0, targetZ), pts = [];
+  for (const x of [-W / 2 - BT, W / 2 + BT]) for (const z of [-H / 2 - 28, H / 2 + BT]) for (const y of [0, BH]) pts.push(V(x, y, z));
+  let d = 300;
+  for (; d < 6000; d += 10) {
+    camera.position.set(0, Math.sin(elev) * d, targetZ + Math.cos(elev) * d);
+    camera.lookAt(target); camera.updateMatrixWorld();
+    if (pts.every(p => { const q = p.clone().project(camera); return Math.abs(q.x) < 0.97 && q.y < 0.84 && q.y > -0.95; })) break;
+  }
+  return { pos: camera.position.clone(), target };
+}
+function fitCamera() {
+  const w = innerWidth, h = innerHeight, portrait = w < h;
+  renderer.setSize(w, h);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  fitted['Whole rink'] = fitView(portrait ? 1.0 : 0.9, portrait ? -15 : -25);
+  fitted['Top-down'] = fitView(1.45, 0);
+  updateCamera(true);
+}
+function cameraGoal() {
+  const view = VIEWS[viewIdx];
+  if (view === 'Roblox') {
+    // orbit around your player's head, like Roblox
+    const focus = show.t > 0 && show.scorer ? show.scorer : you;        // during a special goal, watch the scorer
+    const look = V(toX(focus.x), 42, toZ(focus.y));
+    const d = 240 * zoom * (camera.aspect < 1 ? 1.3 : 1);   // a bit farther back on phones
+    const off = V(Math.sin(camYaw) * Math.cos(camPitch), Math.sin(camPitch), Math.cos(camYaw) * Math.cos(camPitch)).multiplyScalar(d);
+    // camera "collision": stay inside the arena instead of going behind the stands
+    let k = 1;
+    const lim = (v, o, lo, hi) => { if (o > 0 && v + o * k > hi) k = Math.max(0.15, (hi - v) / o); if (o < 0 && v + o * k < lo) k = Math.max(0.15, (lo - v) / o); };
+    lim(look.x, off.x, -W / 2 - 40, W / 2 + 40);
+    lim(look.z, off.z, -H / 2 - 50, H / 2 + 85);
+    k = Math.max(k, 0.3);
+    const pos = look.clone().addScaledVector(off, k);
+    pos.y += (1 - k) * d * 0.75;                     // squeezed against the end of the arena: rise up instead
+    pos.y = Math.max(pos.y, 14);
+    return [pos, look];
+  }
+  if (view === 'Whole rink' || view === 'Top-down') {
+    const f = fitted[view];
+    return [f.target.clone().add(f.pos.clone().sub(f.target).multiplyScalar(zoom)), f.target.clone()];
+  }
+  const pz = toZ(puck.y) * 0.6;    // broadcast: from the side, panning with the puck like on TV
+  const k = (camera.aspect < 1 ? 1.75 : 1.05) * zoom;
+  return [V(640 * k, 420 * k, pz), V(0, 0, pz)];
+}
+function updateCamera(snap) {
+  const [pos, look] = cameraGoal();
+  const t = VIEWS[viewIdx] === 'Roblox' ? 0.22 : 0.08;
+  if (snap) { camPos.copy(pos); camLook.copy(look); }
+  else { camPos.lerp(pos, t); camLook.lerp(look, t); }
+  camera.position.copy(camPos);
+  if (shake > 0) { camera.position.x += (Math.random() - 0.5) * shake * 0.5; camera.position.y += (Math.random() - 0.5) * shake * 0.5; }
+  camera.lookAt(camLook);
+}
+addEventListener('resize', fitCamera);
+fitCamera();
+
+// camera buttons
+const camBtn = document.getElementById('camBtn');
+function setView(i) {
+  viewIdx = (i + VIEWS.length) % VIEWS.length;
+  camBtn.textContent = '🎥 ' + VIEWS[viewIdx];
+  document.body.classList.toggle('roblox', VIEWS[viewIdx] === 'Roblox');
+  you.tx = you.x; you.ty = you.y;
+}
+function setZoom(z) { zoom = clamp(z, 0.4, 2.2); }
+const tap = (id, fn) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
+tap('camBtn', () => setView(viewIdx + 1));
+setView(0);
+tap('zoomIn', () => setZoom(zoom / 1.15));
+tap('musicBtn', () => { initAudio(); setMusic(!musicOn); });
+setMusic(musicOn);
+tap('zoomOut', () => setZoom(zoom * 1.15));
+addEventListener('keydown', e => {
+  if (e.key === 'c' || e.key === 'C') setView(viewIdx + 1);
+  if (e.key === 'm' || e.key === 'M') { initAudio(); setMusic(!musicOn); }
+  if (e.key === '+' || e.key === '=') setZoom(zoom / 1.15);
+  if (e.key === '-' || e.key === '_') setZoom(zoom * 1.15);
+});
+renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); setZoom(zoom * (e.deltaY > 0 ? 1.08 : 1 / 1.08)); }, { passive: false });
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+// ---- Drawing each frame ----
+const scoreRedEl = document.getElementById('sRed'), scoreBlueEl = document.getElementById('sBlue');
+const bannerEl = document.getElementById('banner');
+const perEl = document.getElementById('per'), timeEl = document.getElementById('time');
+let frameNo = 0, lastScore = [0, 0];
+function angleLerp(a, b, t) {
+  const d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+  return a + d * t;
+}
+
+function setText(el, v) { v = String(v); if (el.textContent !== v) el.textContent = v; }
+function render() {
+  frameNo++;
+  players.forEach(p => {
+    const m = meshes.get(p), u = m.userData;
+    m.position.set(toX(p.x), 0, toZ(p.y));
+    // face the puck; your player faces where you're skating unless the puck is close
+    const faceMove = p === you && moving && dist(p.x, p.y, puck.x, puck.y) > 110;
+    const carrying = possession === p;
+    const face = carrying ? (p === you ? carryAngle : mateAngle) : faceMove ? Math.atan2(moveX, moveY) : Math.atan2(puck.x - p.x, puck.y - p.y);
+    m.rotation.y = angleLerp(m.rotation.y, face, carrying ? 0.6 : 0.2);
+    if (show.t > 0 && p === show.scorer) {               // celebration: spin and jump in the spotlight
+      m.rotation.y = frameNo * 0.09; m.position.y = Math.abs(Math.sin(frameNo * 0.17)) * 8;
+    }
+    const sp = Math.hypot(p.vx, p.vy);
+    u.phase += sp * 0.16;
+    u.legs.forEach((leg, i) => { leg.rotation.x = Math.sin(u.phase + i * Math.PI) * Math.min(sp * 0.13, 0.6); });
+    u.body.rotation.x = u.goalie ? 0.12 : Math.min(sp * 0.05, 0.3);   // lean forward when skating
+    if (p === you && lunge > 0) u.body.rotation.x += Math.sin(lunge / 14 * Math.PI) * 0.6;   // stick lunge
+    if (p === you && shoveAnim > 0) u.body.rotation.x += Math.sin(shoveAnim / 12 * Math.PI) * 0.45;   // shoulder into him
+    u.body.rotation.z = p.stun > 0 ? Math.sin(frameNo * 0.5) * 0.35 * (p.stun / 40) : 0;      // stumbling
+    if (u.arrow) u.arrow.position.y = 90 + Math.sin(frameNo * 0.1) * 4;
+    // hard stops and sharp turns kick up ice spray (and your skates scrape)
+    const ax = p.vx - (u.pvx || 0), ay = p.vy - (u.pvy || 0), acc = Math.hypot(ax, ay);
+    if (acc > 2.6 && Math.hypot(u.pvx || 0, u.pvy || 0) > 2 && pause === 0 && running) {
+      const ps = Math.hypot(u.pvx, u.pvy); emitSpray(toX(p.x), toZ(p.y), u.pvx / ps, u.pvy / ps, p === you ? 4 : 2);
+    }
+    if (p === you && audio) skateGain.gain.setTargetAtTime(running && pause === 0 ? Math.min(0.07, sp * 0.01) + (acc > 2.6 ? 0.14 : 0) : 0, now(), 0.06);
+    u.pvx = p.vx; u.pvy = p.vy;
+  });
+  // referee
+  refMesh.position.set(toX(ref.x), 0, toZ(ref.y));
+  refMesh.rotation.y = angleLerp(refMesh.rotation.y, Math.atan2(puck.x - ref.x, puck.y - ref.y), 0.1);
+  { const u = refMesh.userData, sp = Math.hypot(ref.vx, ref.vy); u.phase += sp * 0.16;
+    u.legs.forEach((l, i) => { l.rotation.x = Math.sin(u.phase + i * Math.PI) * Math.min(sp * 0.13, 0.6); }); u.body.rotation.x = Math.min(sp * 0.05, 0.25); }
+  spray.forEach(q => {
+    if (q.life <= 0) return;
+    q.life--; q.vy -= 0.18; q.vx *= 0.92; q.vz *= 0.92;
+    q.m.position.x += q.vx; q.m.position.z += q.vz; q.m.position.y = Math.max(0.5, q.m.position.y + q.vy);
+    q.m.scale.setScalar(Math.max(0.2, q.life / 22)); if (q.life <= 0) q.m.visible = false;
+  });
+
+  // puck (it can fly on lifted shots) + shadow + speed trail
+  puckMesh.position.set(toX(puck.x), 2.5 + puck.h, toZ(puck.y));
+  puckMesh.rotation.x = puck.h > 1 ? Math.sin(frameNo * 0.7) * 0.5 : 0;
+  puckShadow.position.set(toX(puck.x), 0.3, toZ(puck.y));
+  puckShadow.visible = puck.h > 0.5; puckShadow.material.opacity = 0.3 * Math.max(0.25, 1 - puck.h / 40);
+  puckHist.unshift([puckMesh.position.x, puckMesh.position.y, puckMesh.position.z]); if (puckHist.length > 20) puckHist.pop();
+  const fast = Math.hypot(puck.vx, puck.vy) > 9 * SPEED && possession !== you && pause === 0;
+  trail.forEach((m, i) => {
+    const hp = puckHist[(i + 1) * 2];
+    if (fast && hp) { m.position.set(hp[0], hp[1], hp[2]); m.material.opacity = 0.32 * (1 - i / trail.length); m.scale.setScalar(1 - i * 0.08); m.visible = true; }
+    else m.visible = false;
+  });
+
+  // aiming: a target in the net, and a power line on the ice while you wind up
+  const showAim = possession === you && running && pause === 0 && shotOnNet();
+  const aimSpot = charging ? aimX : openSideX(blueGoal);
+  aimRing.visible = showAim;
+  if (showAim) {
+    aimRing.position.set(toX(aimSpot), charging && aimHigh ? 21 : 6, toZ(G_TOP) - 1.5);
+    aimRing.scale.setScalar(charging ? 1.25 - charge * 0.35 + Math.sin(frameNo * 0.3) * 0.04 : 1);
+    aimRing.userData.m.opacity = charging ? 0.95 : 0.45;
+  }
+  aimLine.visible = charging && possession === you;
+  if (aimLine.visible) {
+    const len = 30 + 110 * charge, ang = showAim ? Math.atan2(aimSpot - puck.x, (G_TOP - 4) - puck.y) : carryAngle;
+    aimLine.scale.set(3, 0.4, len); aimLine.rotation.y = ang;
+    aimLine.position.set(toX(puck.x) + Math.sin(ang) * (len / 2 + 10), 1.2, toZ(puck.y) + Math.cos(ang) * (len / 2 + 10));
+  }
+  { const pv = charging ? charge.toFixed(2) : '0'; if (shootBtn.dataset.p !== pv) { shootBtn.dataset.p = pv; shootBtn.style.setProperty('--p', pv); } }
+
+  // pass arrow from the puck to your teammate
+  if (passFlash > 0) {
+    const rcv = passTarget || redMate;
+    const ax = toX(puck.x), az = toZ(puck.y), bx = toX(rcv.x), bz = toZ(rcv.y);
+    const len = Math.hypot(bx - ax, bz - az);
+    passArrow.visible = true;
+    passArrow.scale.set(5, 0.5, len);
+    passArrow.position.set((ax + bx) / 2, 1.5, (az + bz) / 2);
+    passArrow.rotation.y = Math.atan2(bx - ax, bz - az);
+    passArrow.material.opacity = 0.8 * passFlash / 30;
+    passFlash--;
+  } else passArrow.visible = false;
+
+  // goal lights
+  if (score[0] > lastScore[0]) lamps[0].on = 100;
+  if (score[1] > lastScore[1]) lamps[1].on = 100;
+  lastScore = score.slice();
+  lamps.forEach(l => {
+    const lit = l.on > 0 && Math.sin(frameNo * 0.4) > -0.3;
+    l.mat.emissiveIntensity = lit ? 2.5 : 0;
+    l.light.intensity = lit ? 1.6 : 0;
+    if (l.on > 0) l.on--;
+  });
+
+  // scoreboard and banner
+  setText(scoreRedEl, score[0]); setText(scoreBlueEl, score[1]); setText(perEl, PERIOD_NAMES[period]);
+  const secs = Math.ceil(clock / 60);
+  setText(timeEl, period === 4 ? 'Next goal' : `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`);
+  if (banner.t > 0) {
+    const html = banner.text + (banner.sub ? `<small>${banner.sub}</small>` : '');
+    if (bannerEl.innerHTML !== html) bannerEl.innerHTML = html;
+    bannerEl.style.color = banner.color;
+    bannerEl.className = banner.small ? 'show small' : 'show';
+  } else bannerEl.className = '';
+
+  // special-goal light show: fade the arena lights down, spotlight on the scorer
+  show.dark += ((show.t > 0 ? 1 : 0) - show.dark) * 0.07;
+  if (Math.abs(show.dark - lastDark) > 0.002 || show.t > 0) {
+    lastDark = show.dark; applyDark(show.dark < 0.003 ? 0 : show.dark);
+    phonePts.forEach(pp => { pp.visible = show.dark > 0.01; pp.material.opacity = show.dark * (0.55 + 0.45 * Math.sin(frameNo * 0.25 + pp.userData.ph)); });
+  }
+  if (show.scorer && show.dark > 0.01) {
+    const sm = meshes.get(show.scorer), sx = sm.position.x, sz = sm.position.z;
+    spot.position.set(sx + 70, 520, sz + 90); spot.target.position.set(sx, 20, sz); spot.target.updateMatrixWorld();
+    const top = spot.position, base = V(sx, 0, sz), dir = top.clone().sub(base), len = dir.length();
+    beam.position.copy(base).addScaledVector(dir, 0.5); beam.scale.set(1, len / 520, 1);
+    beam.quaternion.setFromUnitVectors(V(0, 1, 0), dir.normalize());
+  }
+  // jumbotron, crowd and music
+  if (frameNo % 15 === 0) {
+    const secs = Math.ceil(clock / 60);
+    const txt = `${PERIOD_NAMES[period]}  ${period === 4 ? 'OT' : Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0')}`;
+    if (txt + score.join('-') !== jumboKey) { jumboKey = txt + score.join('-'); drawJumbo(txt); }
+  }
+  const closeView = VIEWS[viewIdx] === 'Roblox' || VIEWS[viewIdx] === 'Broadcast';
+  roofGroup.visible = closeView;
+  jumbo.visible = closeView && !(Math.hypot(camera.position.x, camera.position.z) < 130 && camera.position.y > 200);
+  stands.forEach(st => {
+    if (st.back) st.grp.visible = closeView;
+    st.tex.offset.y = lamps[0].on > 0 ? Math.abs(Math.sin(frameNo * 0.35)) * 0.012 : 0;   // fans jumping after your goal
+  });
+  if (audio) {
+    const nearNet = Math.min(Math.abs(puck.y - G_TOP), Math.abs(puck.y - G_BOT)) < 170;
+    crowdGain.gain.setTargetAtTime(0.045 + (running && nearNet && pause === 0 ? 0.05 : 0) + (pause > 0 ? 0.02 : 0), now(), 0.4);
+    music.want(running && pause === 0 ? 'play' : 'organ');
+    // how intense should the music be? (it switches gear at the next bar)
+    let inten = 1;
+    if (running && pause === 0) {
+      if (Math.min(Math.abs(puck.y - G_TOP), Math.abs(puck.y - G_BOT)) < 240) inten = 2;            // puck near a net
+      if (possession && puck.y < G_TOP + 280) inten = 2;                                            // you're attacking
+      if ((period === 3 && clock < 30 * 60 && Math.abs(score[0] - score[1]) <= 1) || period === 4) inten = 3;   // crunch time
+    }
+    music.intensity = inten;
+  }
+  if (shake > 0) shake--;
+  passBtn.classList.toggle('off', !canPass());
+  shootBtn.classList.toggle('off', !canShoot());
+  stealBtn.classList.toggle('off', !canSteal());
+  foBtn.classList.toggle('hidden', !(running && foPhase));
+  if (running && foPhase) {
+    const st = foPressed === 'early' ? 'early' : foPressed !== null ? 'done' : foPhase === 2 ? 'now' : 'wait';
+    if (foBtn.dataset.st !== st) {
+      foBtn.dataset.st = st; foBtn.className = st === 'wait' ? '' : st;
+      foBtn.textContent = st === 'early' ? 'TOO EARLY!' : st === 'done' ? 'NICE!' : st === 'now' ? 'NOW!' : 'WIN FACEOFF';
+    }
+  } else foBtn.dataset.st = '';
+  decoyBtn.classList.toggle('off', !canDecoy());
+  shoveBtn.classList.toggle('off', !canShove());
+  setText(passBtn, possession === redMate ? 'CALL' : 'PASS');
+  updateCamera(false);
+  renderer.render(scene, camera);
+}
+
+
+// ---------- Input ----------
+// Roblox view: joystick (left side of a touch screen) or WASD / arrow keys to skate,
+//              swipe or drag anywhere else to turn the camera, pinch or mouse wheel to zoom.
+// Other views: drag on the ice to skate there (joystick and keys still work too).
+const ray = new THREE.Raycaster(), icePlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const hitPt = new THREE.Vector3(), ndc = new THREE.Vector2();
+function setTarget(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  if (ray.ray.intersectPlane(icePlane, hitPt)) { you.tx = hitPt.x + W / 2; you.ty = hitPt.z + H / 2; }
+}
+
+const stickEl = document.getElementById('stick'), knobEl = document.getElementById('knob');
+const STICK_R = 55;
+let stick = null;                 // { id, x0, y0, dx, dy }
+const camPointers = new Map();    // pointers turning the camera
+let pinchDist = 0, dragAim = false;
+const keys = {};
+let moveX = 0, moveY = 0, moveMag = 0, moving = false;   // move direction in rink coordinates
+
+const isRoblox = () => VIEWS[viewIdx] === 'Roblox';
+const touchy = matchMedia('(pointer: coarse)').matches;
+
+function showStick(x, y) {
+  stickEl.style.left = x + 'px'; stickEl.style.top = y + 'px';
+  stickEl.classList.add('active'); knobEl.style.transform = 'translate(-50%,-50%)';
+}
+function hideStick() {
+  stickEl.classList.remove('active'); stick = null;
+  if (touchy) { stickEl.style.left = '90px'; stickEl.style.top = (innerHeight - 150) + 'px'; }
+}
+hideStick();
+addEventListener('resize', () => { if (!stick) hideStick(); });
+
+const cvs = renderer.domElement;
+cvs.addEventListener('pointerdown', e => {
+  try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
+  const isTouch = e.pointerType !== 'mouse';
+  // joystick: a touch on the left side of the screen (lower part)
+  if (isTouch && !stick && e.clientX < innerWidth * 0.45 && e.clientY > innerHeight * 0.3) {
+    stick = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0 };
+    showStick(e.clientX, e.clientY);
+    return;
+  }
+  if (isRoblox()) {
+    camPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (camPointers.size === 2) { const [p1, p2] = [...camPointers.values()]; pinchDist = Math.hypot(p1.x - p2.x, p1.y - p2.y); }
+  } else { dragAim = true; setTarget(e); }
+});
+cvs.addEventListener('pointermove', e => {
+  if (stick && e.pointerId === stick.id) {
+    let dx = e.clientX - stick.x0, dy = e.clientY - stick.y0;
+    const d = Math.hypot(dx, dy);
+    if (d > STICK_R) { dx *= STICK_R / d; dy *= STICK_R / d; }
+    stick.dx = dx / STICK_R; stick.dy = dy / STICK_R;
+    knobEl.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    return;
+  }
+  const cp = camPointers.get(e.pointerId);
+  if (cp) {
+    if (camPointers.size >= 2) {                       // two fingers: pinch to zoom
+      cp.x = e.clientX; cp.y = e.clientY;
+      const [p1, p2] = [...camPointers.values()];
+      const nd = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+      if (pinchDist > 0) setZoom(zoom * pinchDist / nd);
+      pinchDist = nd;
+      return;
+    }
+    camYaw -= (e.clientX - cp.x) * 0.008;              // one finger / mouse drag: turn the camera
+    camPitch = clamp(camPitch + (e.clientY - cp.y) * 0.006, 0.08, 1.35);
+    cp.x = e.clientX; cp.y = e.clientY;
+    return;
+  }
+  if (dragAim) setTarget(e);
+});
+function pointerEnd(e) {
+  if (stick && e.pointerId === stick.id) { hideStick(); return; }
+  camPointers.delete(e.pointerId); pinchDist = 0;
+  dragAim = false;
+}
+cvs.addEventListener('pointerup', pointerEnd);
+cvs.addEventListener('pointercancel', pointerEnd);
+
+addEventListener('keydown', e => { keys[e.code] = true; if (e.code.startsWith('Arrow')) e.preventDefault(); });
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+// Each frame: turn the joystick / keys into a direction on the ice, relative to the camera
+function readControls() {
+  let ix = 0, iy = 0;                                  // ix = right, iy = forward
+  if (keys.KeyW || keys.ArrowUp) iy += 1;
+  if (keys.KeyS || keys.ArrowDown) iy -= 1;
+  if (keys.KeyD || keys.ArrowRight) ix += 1;
+  if (keys.KeyA || keys.ArrowLeft) ix -= 1;
+  if (keys.KeyQ) camYaw += 0.04;
+  if (keys.KeyE) camYaw -= 0.04;
+  if (stick) { ix += stick.dx; iy -= stick.dy; }
+  const mag = Math.min(1, Math.hypot(ix, iy));
+  if (mag < 0.12) {
+    if (moving) { you.tx = you.x; you.ty = you.y; }    // let go: stop where you are
+    moving = false; moveMag = 1;
+    return;
+  }
+  // camera "forward" on the ice, and "right"
+  const yaw = isRoblox() ? camYaw : Math.atan2(camPos.x - camLook.x, camPos.z - camLook.z);
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw), rx = -fz, rz = fx;
+  let wx = rx * ix + fx * iy, wz = rz * ix + fz * iy;
+  const n = Math.hypot(wx, wz) || 1; wx /= n; wz /= n;
+  if (charging && possession === you) {        // winding up: the joystick aims the shot instead of skating
+    aimX = clamp(aimX + wx * mag * 4.5, W / 2 - GOAL / 2 + BR + 4, W / 2 + GOAL / 2 - BR - 4);
+    if (wz < -0.55) aimHigh = true; else if (wz > 0.55) aimHigh = false;   // push toward the net = top shelf
+    moving = false;
+    return;
+  }
+  moveX = wx; moveY = wz; moveMag = mag; moving = true;
+  you.tx = you.x + wx * 200; you.ty = you.y + wz * 200;
+}
+
+// ---------- Passing ----------
+const passBtn = document.getElementById('pass');
+const PASS_REACH = SR + BR + 14;
+function canPass() {
+  return running && pause === 0 &&
+    (possession === you || possession === redMate || (!possession && dist(you.x, you.y, puck.x, puck.y) < PASS_REACH));
+}
+// is the straight line from a to b clear of blue players?
+function laneOpen(ax, ay, bx, by, extra = 6) {
+  return [blueA, blueB].every(o => {
+    const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1;
+    const t = clamp(((o.x - ax) * dx + (o.y - ay) * dy) / L2, 0, 1);
+    return dist(o.x, o.y, ax + dx * t, ay + dy * t) > o.r + BR + extra;
+  });
+}
+// A lead pass: just ahead of the receiver (or toward the open spot he's skating to), firm and on the tape.
+// If a blue player is anywhere near the lane, it's lifted over his stick (a saucer pass) and lands for the receiver.
+function passTo(from, to) {
+  let tx = to.x, ty = to.y;
+  const rs = Math.hypot(to.vx, to.vy);
+  if (to === redMate && mateSpot && possession === you && dist(to.x, to.y, mateSpot[0], mateSpot[1]) > 10) {
+    const dd = dist(to.x, to.y, mateSpot[0], mateSpot[1]), k = Math.min(1, 55 / dd);
+    tx += (mateSpot[0] - to.x) * k; ty += (mateSpot[1] - to.y) * k;
+  } else if (rs > 0.5) {
+    const lead = Math.min(55, rs * 10); tx += to.vx / rs * lead; ty += to.vy / rs * lead;
+  }
+  tx = clamp(tx, BR + 14, W - BR - 14); ty = clamp(ty, BR + 14, H - BR - 14);
+  const d = dist(tx, ty, puck.x, puck.y) || 1;
+  const sp = clamp(8 + d * 0.03, 10, 17) * SPEED, T = Math.max(4, d / (sp * 0.88));
+  puck.vx = (tx - puck.x) / d * sp; puck.vy = (ty - puck.y) / d * sp;
+  puck.h = 0; puck.vh = 0;
+  if (!laneOpen(puck.x, puck.y, tx, ty, 28)) {             // saucer pass
+    const peak = 27; puck.g = 8 * peak / (T * T); puck.vh = puck.g * T / 2; puck.h = 0.5;
+  }
+  possession = null; charging = false;
+  passFrom = from; passTarget = to; passTimer = 60; passFlash = 30;
+  if (from === you) grabCooldown = 20; else mateGrab = 20;
+  if (to === you) grabCooldown = 0; else mateGrab = 0;
+  touch(from);
+  sfx.stick(0.7);
+}
+function pass() {
+  if (!canPass()) return;
+  if (possession === redMate) { passTo(redMate, you); return; }   // call for the puck: he passes it to you
+  passTo(you, redMate);
+}
+passBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); pass(); });
+addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); pass(); } });
+
+// ---------- Shooting ----------
+// Tap SHOOT for a quick wrist shot, hold it to wind up a harder one. The shot goes exactly where the
+// yellow target is: it starts on the side of the net the goalie is leaving open, and while you hold
+// SHOOT the joystick (or WASD) moves it — left/right across the net, push toward the net for top shelf.
+const shootBtn = document.getElementById('shoot');
+function canShoot() { return running && pause === 0 && possession === you; }
+// the side of the net the goalie is leaving open
+function openSideX(g) {
+  const lp = W / 2 - GOAL / 2, rp = W / 2 + GOAL / 2;
+  const gapL = (g.x - g.r * 0.8) - lp, gapR = rp - (g.x + g.r * 0.8);
+  return gapL > gapR ? lp + BR + 5 : rp - BR - 5;
+}
+// is your stick pointed (roughly) at the net, from somewhere you can shoot?
+function shotOnNet() {
+  if (puck.y < G_TOP + 15 || puck.y > H * 0.7) return false;
+  const dx = W / 2 - puck.x, dy = G_TOP - puck.y, d = Math.hypot(dx, dy) || 1;
+  return Math.sin(carryAngle) * dx / d + Math.cos(carryAngle) * dy / d > 0.2;
+}
+// fire the puck at a spot on a goal line; high shots are lifted so they cross the line at crossbar-ish height
+function shotAt(power, tx, high, goalY) {
+  const ty = goalY + (goalY < H / 2 ? -4 : 4);
+  const d = dist(tx, ty, puck.x, puck.y) || 1, sp = MAXV * SPEED * (0.6 + 0.6 * power);
+  puck.vx = (tx - puck.x) / d * sp; puck.vy = (ty - puck.y) / d * sp;
+  puck.g = 0.16; puck.h = 0; puck.vh = 0;
+  if (high) {                                    // rises quickly so it's already up high when it reaches the goalie
+    const T = Math.max(4, d / (sp * 0.93));
+    puck.h = 0.5; puck.vh = Math.min((20 + 0.5 * puck.g * T * T) / T, 7);
+  }
+}
+function shotPower() { return 0.25 + 0.75 * charge; }
+function shoot(power) {
+  if (!canShoot()) return;
+  if (power === undefined) power = shotPower();
+  if (!charging) { aimX = openSideX(blueGoal); aimHigh = false; }
+  if (shotOnNet()) shotAt(power, aimX, aimHigh, G_TOP);
+  else {                                         // not facing the net: it goes where your stick points (dump it in, clear it)
+    const sp = MAXV * SPEED * (0.6 + 0.6 * power);
+    puck.vx = Math.sin(carryAngle) * sp; puck.vy = Math.cos(carryAngle) * sp; puck.h = 0; puck.vh = 0;
+  }
+  touch(you);
+  possession = null; grabCooldown = 25; charging = false; charge = 0;
+  shotLive = 90;
+  if (power > 0.65) shake = 12;
+  sfx.slap(power);
+}
+function startCharge() { if (canShoot() && !charging) { charging = true; charge = 0; aimX = openSideX(blueGoal); aimHigh = false; } }
+function releaseShot() { if (charging) shoot(shotPower()); }
+shootBtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  try { shootBtn.setPointerCapture(e.pointerId); } catch (err) {}
+  startCharge();
+});
+shootBtn.addEventListener('pointerup', e => { e.preventDefault(); releaseShot(); });
+shootBtn.addEventListener('pointercancel', () => releaseShot());
+addEventListener('keydown', e => {
+  if (e.code === 'KeyF' || e.code === 'Enter') { e.preventDefault(); if (!e.repeat) startCharge(); }
+});
+addEventListener('keyup', e => { if (e.code === 'KeyF' || e.code === 'Enter') releaseShot(); });
+
+// ---------- Stealing (stick lunge / poke-check) ----------
+const stealBtn = document.getElementById('steal');
+const STEAL_REACH = SR + BR + 48;     // how far your stick lunge reaches
+let stealWait = 0;                    // frames until you can lunge again
+let lunge = 0;                        // stick-lunge animation frames
+function canSteal() {
+  return running && pause === 0 && !possession && stealWait === 0 &&
+         dist(you.x, you.y, puck.x, puck.y) < STEAL_REACH;
+}
+function steal() {
+  if (!running || pause > 0 || possession || stealWait > 0) return;
+  lunge = 14;
+  // the blue skater closest to the puck (if one is fighting for it)
+  let rival = null, rd = 60;
+  [blueA, blueB].forEach(p => { const d = dist(p.x, p.y, puck.x, puck.y); if (d < rd) { rd = d; rival = p; } });
+  const inReach = dist(you.x, you.y, puck.x, puck.y) < STEAL_REACH;
+  const chance = rival ? 0.9 - 0.35 * aiSkill : 1;      // Easy ~69%, Medium ~60%, Hard ~55% when contested
+  if (inReach && Math.random() < chance) {
+    possession = you; grabCooldown = 0;
+    carryAngle = Math.atan2(puck.x - you.x, puck.y - you.y);
+    touch(you);
+    if (rival) { rival.stun = 40; rival.vx *= 0.5; rival.vy *= 0.5; }
+    stealWait = 20;
+    announce('Steal!', '', '#2ecc71', 35, true);
+    sfx.stick(1); beep(880, 0.08, 0.08);
+  } else {
+    stealWait = 45;                                      // missed: wait a moment before the next try
+    sfx.whoosh();
+  }
+}
+stealBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); steal(); });
+addEventListener('keydown', e => { if (e.code === 'KeyR' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') { e.preventDefault(); steal(); } });
+
+// ---------- Decoy (fake shot) ----------
+// Fake a shot: the goalie may slide over to stop it (leaving the other side open) and blue players
+// nearby may drop to block it — then shoot for real!
+const decoyBtn = document.getElementById('decoy');
+function canDecoy() { return running && pause === 0 && possession === you && !charging && decoyWait === 0; }
+function decoy() {
+  if (!canDecoy()) return;
+  decoyWait = 50; lunge = 12;
+  const fool = 0.95 - 0.35 * aiSkill;                    // how often they fall for it (Easy ~74%, Hard ~60%)
+  let fooled = 0;
+  if (shotOnNet() && dist(puck.x, puck.y, W / 2, G_TOP) < 430 && Math.random() < fool) {
+    blueGoal.bite = 45; blueGoal.biteX = openSideX(blueGoal); fooled++;
+  }
+  [blueA, blueB].forEach(p => {
+    if (dist(p.x, p.y, you.x, you.y) < 130 && Math.random() < fool) { p.stun = 30; p.vx *= 0.3; p.vy *= 0.3; fooled++; }
+  });
+  announce(fooled ? 'Fooled them!' : 'Fake!', fooled ? 'Shoot now!' : '', '#c58bff', 35, true);
+  sfx.whoosh(); sfx.stick(0.3);
+}
+decoyBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); decoy(); });
+addEventListener('keydown', e => { if (e.code === 'KeyX') { e.preventDefault(); decoy(); } });
+
+// ---------- Shove (body check) ----------
+// Knock a blue player who is close to you off balance — great for winning puck battles on the boards.
+const shoveBtn = document.getElementById('shove');
+const SHOVE_REACH = SR * 2 + 22;
+function shoveTarget() {
+  let best = null, bd = SHOVE_REACH;
+  [blueA, blueB].forEach(p => { const d = dist(p.x, p.y, you.x, you.y); if (d < bd) { bd = d; best = p; } });
+  return best;
+}
+function canShove() { return running && pause === 0 && shoveWait === 0 && !!shoveTarget(); }
+function shove() {
+  if (!running || pause > 0 || shoveWait > 0) return;
+  const t = shoveTarget(); shoveWait = 40; shoveAnim = 12;
+  if (!t) { sfx.whoosh(); return; }
+  const dx = t.x - you.x, dy = t.y - you.y, d = Math.hypot(dx, dy) || 1;
+  t.vx = dx / d * 9 * SPEED; t.vy = dy / d * 9 * SPEED; t.stun = 35;    // he slides away, off balance
+  t.x += dx / d * 6; t.y += dy / d * 6;
+  if (!possession && dist(t.x, t.y, puck.x, puck.y) < t.r + BR + 30) { puck.vx *= 0.3; puck.vy *= 0.3; }   // the puck he was fighting for is loose
+  announce('Shove!', '', '#ff9a3c', 25, true);
+  sfx.boards(0.7);
+}
+shoveBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); shove(); });
+addEventListener('keydown', e => { if (e.code === 'KeyV') { e.preventDefault(); shove(); } });
+
+// ---------- Movement ----------
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (a, b, c, d) => Math.hypot(a - c, b - d);
+
+function boundsFor(p) {
+  if (p.role === 'goalie') {
+    const top = p.team === 1;
+    return {
+      x0: W / 2 - GOAL / 2 - 10, x1: W / 2 + GOAL / 2 + 10,
+      y0: top ? G_TOP + 18 : G_BOT - 90, y1: top ? G_TOP + 90 : G_BOT - 18
+    };
+  }
+  return { x0: p.r, x1: W - p.r, y0: p.r + 4, y1: H - p.r - 4 };
+}
+
+function moveTo(p, tx, ty, maxStep) {
+  const b = boundsFor(p);
+  if (p.stun > 0) {                       // stumbling after a steal: just glide and slow down
+    p.stun--; p.vx *= 0.85; p.vy *= 0.85;
+    p.x = clamp(p.x + p.vx, b.x0, b.x1); p.y = clamp(p.y + p.vy, b.y0, b.y1);
+    return;
+  }
+  maxStep *= SPEED;
+  tx = clamp(tx, b.x0, b.x1); ty = clamp(ty, b.y0, b.y1);
+  if (p.role !== 'goalie') { [tx, ty] = avoidNet(p, tx, ty); tx = clamp(tx, b.x0, b.x1); ty = clamp(ty, b.y0, b.y1); }
+  let dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
+  if (d > maxStep) { dx *= maxStep / d; dy *= maxStep / d; }
+  p.x += dx; p.y += dy; p.vx = dx; p.vy = dy;
+}
+
+// The nets are solid: skate around them instead of into them
+function netBox(top, pad) {
+  return { x0: W / 2 - GOAL / 2 - 3 - pad, x1: W / 2 + GOAL / 2 + 3 + pad,
+           y0: (top ? G_TOP - ND : G_BOT) - pad, y1: (top ? G_TOP : G_BOT + ND) + pad };
+}
+function segHitsBox(ax, ay, bx, by, r) {        // does the straight line a->b pass through box r?
+  let t0 = 0, t1 = 1;
+  const dx = bx - ax, dy = by - ay;
+  for (const [p, q] of [[-dx, ax - r.x0], [dx, r.x1 - ax], [-dy, ay - r.y0], [dy, r.y1 - ay]]) {
+    if (p === 0) { if (q < 0) return false; continue; }
+    const t = q / p;
+    if (p < 0) { if (t > t1) return false; if (t > t0) t0 = t; }
+    else { if (t < t0) return false; if (t < t1) t1 = t; }
+  }
+  return true;
+}
+function avoidNet(p, tx, ty) {
+  const bb = boundsFor(p);
+  for (const top of [true, false]) {
+    const b = netBox(top, p.r + 1);
+    if (!segHitsBox(p.x, p.y, tx, ty, b)) continue;
+    const midY = (b.y0 + b.y1) / 2;
+    let wx, wy;
+    if (p.x <= b.x0 + 2 || p.x >= b.x1 - 2) {      // already beside the net: go to the corner on the target's side
+      wx = p.x < W / 2 ? b.x0 - 6 : b.x1 + 6; wy = ty < midY ? b.y0 - 6 : b.y1 + 6;
+    } else {                                       // in front of / behind it: go around the closer side
+      wx = ((p.x + tx) / 2 < W / 2) ? b.x0 - 6 : b.x1 + 6; wy = p.y < midY ? b.y0 - 6 : b.y1 + 6;
+    }
+    wx = clamp(wx, bb.x0, bb.x1); wy = clamp(wy, bb.y0, bb.y1);
+    if (Math.hypot(wx - p.x, wy - p.y) < 8) return [tx, ty];   // already at the corner: the way is clear
+    return [wx, wy];
+  }
+  return [tx, ty];
+}
+// Rounded corners: push something back inside the curve. Returns the outward direction if it hit.
+function cornerPush(o, r) {
+  const cx = o.x < CR ? CR : o.x > W - CR ? W - CR : null;
+  const cy = o.y < CR ? CR : o.y > H - CR ? H - CR : null;
+  if (cx === null || cy === null) return null;
+  const dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy), lim = CR - r;
+  if (d <= lim || d === 0) return null;
+  const nx = dx / d, ny = dy / d;
+  o.x = cx + nx * lim; o.y = cy + ny * lim;
+  return [nx, ny];
+}
+// Keep a circle out of a net. openMouth = the front of the net between the posts is open (for the puck).
+function netPush(o, r, top, openMouth) {
+  const b = netBox(top, 0);
+  if (openMouth && Math.abs(o.x - W / 2) < GOAL / 2 - 2 && (top ? o.y > G_TOP - 2 : o.y < G_BOT + 2)) return null;
+  const cx = clamp(o.x, b.x0, b.x1), cy = clamp(o.y, b.y0, b.y1);
+  const dx = o.x - cx, dy = o.y - cy, d = Math.hypot(dx, dy);
+  if (d >= r) return null;
+  let nx, ny;
+  if (d > 0) { nx = dx / d; ny = dy / d; o.x = cx + nx * r; o.y = cy + ny * r; }
+  else {                                         // centre inside the net: push out the shortest way
+    const opts = [[o.x - b.x0, -1, 0], [b.x1 - o.x, 1, 0], [o.y - b.y0, 0, -1], [b.y1 - o.y, 0, 1]].sort((a, c) => a[0] - c[0]);
+    nx = opts[0][1]; ny = opts[0][2];
+    if (nx < 0) o.x = b.x0 - r; if (nx > 0) o.x = b.x1 + r; if (ny < 0) o.y = b.y0 - r; if (ny > 0) o.y = b.y1 + r;
+  }
+  return [nx, ny];
+}
+function constrainPlayers() {
+  players.forEach(p => {
+    if (p.role === 'goalie') return;
+    cornerPush(p, p.r);
+    netPush(p, p.r, true, false); netPush(p, p.r, false, false);
+    const b = boundsFor(p); p.x = clamp(p.x, b.x0, b.x1); p.y = clamp(p.y, b.y0, b.y1);   // never off the ice
+  });
+}
+
+// ---------- Computer brains ----------
+// Get behind the puck (relative to the goal being attacked), then skate through it
+function chaseTarget(p) {
+  let gy = TEAM[p.team].attackY;
+  let gx = W / 2 + (puck.x < W / 2 ? 25 : -25);     // aim a little off center
+  const behindNet = p.team === 0 ? puck.y < G_TOP + 4 : puck.y > G_BOT - 4;
+  if (behindNet) {                                  // puck behind the net: bring it around the side (wraparound)
+    gx = puck.x < W / 2 ? W / 2 - GOAL / 2 - 55 : W / 2 + GOAL / 2 + 55;
+    gy = p.team === 0 ? G_TOP + 60 : G_BOT - 60;
+  }
+  let dx = gx - puck.x, dy = gy - puck.y;
+  const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
+  const reach = p.r + BR;
+  let bx = puck.x - dx * (reach + 4), by = puck.y - dy * (reach + 4);
+  const b = boundsFor(p);
+  if (bx < b.x0 - 4 || bx > b.x1 + 4 || by < b.y0 - 4 || by > b.y1 + 4) {
+    // Puck is on the boards and you can't get behind it: dig it out along the boards from the side you're on
+    const bn = boardNormal(puck.x, puck.y, BR + 34) || [0, puck.y < H / 2 ? -1 : 1];
+    let tx = -bn[1], ty = bn[0];
+    const proj = (puck.x - p.x) * tx + (puck.y - p.y) * ty;
+    if (proj < 0) { tx = -tx; ty = -ty; }
+    if (Math.abs(proj) < 6) {                                   // straight on: rim it toward your attacking end
+      const toward = TEAM[p.team].attackY > H / 2 ? 1 : -1;
+      if (Math.abs(ty) > 0.3 ? Math.sign(ty) !== toward : Math.sign(tx) !== (puck.x >= W / 2 ? 1 : -1)) { tx = -tx; ty = -ty; }
+    }
+    const ax = puck.x - tx * (reach + 2) - bn[0] * 4, ay = puck.y - ty * (reach + 2) - bn[1] * 4;
+    if (dist(p.x, p.y, ax, ay) < 18 || dist(p.x, p.y, puck.x, puck.y) < reach + 8) return [puck.x + tx * 30, puck.y + ty * 30];
+    return [ax, ay];
+  }
+  const ahead = (puck.x - p.x) * dx + (puck.y - p.y) * dy;   // >0 means skater is behind the puck
+  if (dist(p.x, p.y, bx, by) < 14 || (ahead > 0 && dist(p.x, p.y, puck.x, puck.y) < reach + 12)) {
+    return [puck.x + dx * 30, puck.y + dy * 30];               // shoot!
+  }
+  if (ahead < 0) {                                              // wrong side: loop around the puck
+    const side = ((p.x - puck.x) * -dy + (p.y - puck.y) * dx) >= 0 ? 1 : -1;
+    return [bx - dy * side * reach, by + dx * side * reach];
+  }
+  return [bx, by];
+}
+
+// Stay between the puck and your own net
+function defendTarget(p) {
+  const own = TEAM[p.team].ownY;
+  const x = W / 2 + (puck.x - W / 2) * 0.6;
+  let y = own + (puck.y - own) * 0.45;
+  y = p.team === 1 ? Math.max(y, G_TOP + 45) : Math.min(y, G_BOT - 45);
+  return [x, y];
+}
+
+// Hang back in open ice ready for a pass
+function supportTarget(p) {
+  const x = puck.x < W / 2 ? W * 0.72 : W * 0.28;
+  const y = p.team === 0 ? clamp(puck.y + 110, H * 0.35, H - 120) : clamp(puck.y - 110, 120, H * 0.65);
+  return [x, y];
+}
+
+function goalieThink(p, speed, smart) {
+  const top = p.team === 1, goalY = top ? G_TOP : G_BOT, lineY = top ? G_TOP + GLINE : G_BOT - GLINE;
+  if (p.bite > 0) {               // fell for a fake: slides over to stop it, then is slow to get back
+    p.bite--;
+    moveTo(p, p.biteX, lineY, p.bite > 25 ? speed * 1.2 : speed * 0.35);
+    return;
+  }
+  // play the angle: stand on the line between the puck and the middle of the net
+  const dy = Math.max(Math.abs(puck.y - goalY), 1);
+  let tx = W / 2 + (puck.x - W / 2) * Math.min(1, (GLINE + 12) / dy);
+  // read the shot: if the puck is heading at the net, slide to where it will cross
+  // Medium/Hard: the blue goalie reads where you're looking while you wind up a shot
+  if (p === blueGoal && charging && possession === you) tx += (aimX - tx) * Math.max(0, aiSkill - 0.6) * 1.1;
+  const coming = top ? puck.vy < -1 : puck.vy > 1;
+  if (coming) {
+    const ix = puck.x + puck.vx * (lineY - puck.y) / puck.vy;
+    if (Math.abs(ix - W / 2) < GOAL / 2 + 30) tx += (ix - tx) * smart;
+  }
+  const close = top ? puck.y < H * 0.4 : puck.y > H * 0.6;
+  moveTo(p, tx, lineY + (close ? (top ? 10 : -10) : 0), speed);
+}
+
+// In its own half a player carries the puck with small pushes (to avoid icing); past center it can shoot
+function carrySpeed(p, speed) {
+  const ownHalf = p.team === 0 ? puck.y > H / 2 : puck.y < H / 2;
+  return ownHalf && dist(p.x, p.y, puck.x, puck.y) < p.r + BR + 20 ? Math.min(speed, 3.6) : speed;
+}
+
+function teamAI() {
+  const skill = aiSkill;
+  // Blue: closest skater chases, the other defends
+  const dA = dist(blueA.x, blueA.y, puck.x, puck.y), dB = dist(blueB.x, blueB.y, puck.x, puck.y);
+  const blueChaser = dA <= dB ? blueA : blueB, blueOther = dA <= dB ? blueB : blueA;
+  const blueSpeed = 2.4 + 6.6 * skill;
+  let t = keepOnside(blueChaser, chaseTarget(blueChaser)); moveTo(blueChaser, t[0], t[1], carrySpeed(blueChaser, blueSpeed));
+  const puckInBlueEnd = puck.y < H / 2;
+  t = puckInBlueEnd ? defendTarget(blueOther) : supportTarget(blueOther);
+  t = keepOnside(blueOther, t);
+  moveTo(blueOther, t[0], t[1], blueSpeed * 0.85);
+  goalieThink(blueGoal, 4.5 + 5.5 * skill, 0.5 + 0.45 * skill);
+
+  mateThink(7);
+  goalieThink(redGoal, 8.6 - 2 * aiSkill, 0.95 - 0.4 * aiSkill);   // your goalie: a bit less perfect on harder levels
+}
+
+// ---------- Your teammate ----------
+// He plays a position instead of chasing the puck: gets open for a pass when you have it, covers a
+// blue player on defense, and when he has the puck he carries it, shoots from good spots, or passes
+// it back to you when you're open (or when you call for it with PASS).
+function blueDist(x, y) { return Math.min(dist(x, y, blueA.x, blueA.y), dist(x, y, blueB.x, blueB.y)); }
+function findOpenSpot() {
+  const cands = [[0.3, 150], [0.7, 150], [0.5, 115], [0.25, 250], [0.75, 250], [0.5, 220]].map(([fx, dy]) => [W * fx, G_TOP + dy]);
+  for (const dx of [-170, 170]) for (const dy of [-220, -130]) cands.push([you.x + dx, you.y + dy]);
+  let best = null, bs = -1e9;
+  for (let [x, y] of cands) {
+    x = clamp(x, 45, W - 45); y = clamp(y, G_TOP + 70, H - 140);
+    if (puck.y > BL_TOP + 2 && y < BL_TOP + 16) y = BL_TOP + 16;          // stay onside
+    const fromYou = dist(x, y, you.x, you.y);
+    const sc = Math.min(blueDist(x, y), 220)                               // away from defenders
+             + (laneOpen(puck.x, puck.y, x, y, 10) ? 70 : -90)             // you can pass it there
+             + (you.y - y) * 0.3                                           // ahead of you is better
+             - dist(x, y, redMate.x, redMate.y) * 0.2                      // not too far to skate
+             - (fromYou < 120 ? 150 : 0) - Math.max(0, fromYou - 400);     // not on top of you, not too far
+    if (sc > bs) { bs = sc; best = [x, y]; }
+  }
+  return best;
+}
+function mateThink(speed) {
+  const m = redMate;
+  if (possession === m) { mateCarry(speed); return; }
+  let t;
+  if (passTimer > 0 && passTarget === m) {                 // a pass is coming: step onto its path to receive it
+    const ps = Math.hypot(puck.vx, puck.vy) || 1, dx = puck.vx / ps, dy = puck.vy / ps;
+    const along = Math.max(0, (m.x - puck.x) * dx + (m.y - puck.y) * dy);
+    moveTo(m, puck.x + dx * along, puck.y + dy * along, speed * 1.15); return;
+  }
+  const dM = dist(m.x, m.y, puck.x, puck.y), dY = dist(you.x, you.y, puck.x, puck.y), dB = blueDist(puck.x, puck.y);
+  const onBoards = !!boardNormal(puck.x, puck.y, BR + 30);
+  if (!possession && ((dM < dY - 50 && (dM < dB + 20 || puck.y > H * 0.62) && !onBoards) || (dM < 45 && dM < dY))) {
+    t = keepOnside(m, [puck.x, puck.y]); moveTo(m, t[0], t[1], speed); return;   // loose puck he's clearly first to
+  }
+  if (possession === you) {                                // get open for a pass
+    if (--mateSpotTimer <= 0 || !mateSpot) { mateSpot = findOpenSpot(); mateSpotTimer = 25; }
+    t = keepOnside(m, mateSpot); moveTo(m, t[0], t[1], speed); return;
+  }
+  const blueHasIt = lastTouch && lastTouch.team === 1 && dB < 70;
+  if (blueHasIt || puck.y > H * 0.5) {                     // defense: cover the blue player who ISN'T on the puck, goal-side
+    const onPuck = dist(blueA.x, blueA.y, puck.x, puck.y) < dist(blueB.x, blueB.y, puck.x, puck.y) ? blueA : blueB;
+    const mark = onPuck === blueA ? blueB : blueA;
+    t = [mark.x + (W / 2 - mark.x) * 0.3, mark.y + (G_BOT - mark.y) * 0.3];
+    if (t[1] < mark.y + 45) t[1] = mark.y + 45;
+    moveTo(m, t[0], t[1], speed); return;
+  }
+  // loose puck up the ice that you're going for: support in the high slot, ready for a pass or rebound
+  t = keepOnside(m, [puck.x < W / 2 ? W * 0.68 : W * 0.32, clamp(puck.y + 110, G_TOP + 130, H * 0.62)]);
+  moveTo(m, t[0], t[1], speed * 0.9);
+}
+function mateCarry(speed) {
+  const m = redMate; mateHold++;
+  const pressured = blueDist(m.x, m.y) < 58;
+  const youOpen = blueDist(you.x, you.y) > 85 && laneOpen(puck.x, puck.y, you.x, you.y, 8) && dist(you.x, you.y, m.x, m.y) > 90;
+  const inRange = m.y - G_TOP < 280 && m.y > G_TOP + 45 && Math.abs(m.x - W / 2) < 190;
+  if (mateHold > 16) {
+    if (inRange) {
+      const ax = openSideX(blueGoal);
+      if (laneOpen(puck.x, puck.y, ax, G_TOP, 4) || pressured || mateHold > 90) {   // shoot at the open side
+        shotAt(0.75, ax, Math.random() < 0.5, G_TOP);
+        possession = null; mateGrab = 30; shotLive = 90; touch(redMate);
+        sfx.slap(0.75); return;
+      }
+    }
+    if (youOpen && (pressured || you.y < m.y - 70)) { passTo(m, you); return; }      // you're open up ice: give it to you
+  }
+  // skate toward the slot, swerving around defenders in the way
+  let tx = W / 2 + (m.x < W / 2 ? -45 : 45);
+  for (const b of [blueA, blueB]) if (b.y < m.y && dist(m.x, m.y, b.x, b.y) < 110) tx += (m.x < b.x ? -1 : 1) * 90;
+  moveTo(m, tx, G_TOP + 150, speed * 0.8);
+}
+
+// Players can't skate through each other
+function separate() {
+  for (let i = 0; i < players.length; i++) for (let j = i + 1; j < players.length; j++) {
+    const a = players[i], b = players[j];
+    const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), m = a.r + b.r;
+    if (d < m && d > 0) {
+      const push = (m - d) / 2, nx = dx / d, ny = dy / d;
+      a.x -= nx * push; a.y -= ny * push;
+      b.x += nx * push; b.y += ny * push;
+    }
+  }
+}
+
+// ---------- Puck ----------
+// If something is right against the boards, which way is "out"? (null if it's in open ice)
+function boardNormal(x, y, d) {
+  const cx = x < CR ? CR : x > W - CR ? W - CR : null, cy = y < CR ? CR : y > H - CR ? H - CR : null;
+  if (cx !== null && cy !== null) {
+    const ex = x - cx, ey = y - cy, e = Math.hypot(ex, ey);
+    return e > CR - d && e > 0 ? [ex / e, ey / e] : null;
+  }
+  if (x < d) return [-1, 0]; if (x > W - d) return [1, 0];
+  if (y < d) return [0, -1]; if (y > H - d) return [0, 1];
+  return null;
+}
+function hit(p) {
+  const high = puck.h > 14;
+  if (high && p.role !== 'goalie') return false;           // a lifted puck flies over sticks
+  const dx = puck.x - p.x, dy = puck.y - p.y, d = Math.hypot(dx, dy), m = p.r + BR - (high ? 8 : 0);
+  if (d < m && d > 0) {
+    if (p === blueGoal && shotLive > 0 && Math.hypot(puck.vx, puck.vy) > 5 * SPEED) {
+      announce('SAVE!', '', '#bfe6ff', 40, true); shotLive = 0; sfx.ooh();
+    }
+    if (p === redGoal && cpuShotLive > 0 && Math.hypot(puck.vx, puck.vy) > 5 * SPEED) {
+      announce('SAVE!', 'Great save by your goalie!', '#ffd23f', 45, true); cpuShotLive = 0; sfx.cheer(0.6);
+    }
+    touch(p);
+    const nx = dx / d, ny = dy / d;
+    puck.x = p.x + nx * m; puck.y = p.y + ny * m;
+    const rvx = puck.vx - p.vx, rvy = puck.vy - p.vy, dot = rvx * nx + rvy * ny;
+    if (dot < 0) {
+      const bounce = p.role === 'goalie' ? 1.5 : 2.2;   // goalies absorb a bit
+      puck.vx -= bounce * dot * nx; puck.vy -= bounce * dot * ny;
+      if (p.role === 'goalie') sfx.boards(Math.min(1, Math.abs(dot) / 8)); else sfx.stick(Math.min(1, 0.3 + Math.abs(dot) / 10));
+      // computer skaters shoot when they're in range and the puck is in front of them
+      if (p.role === 'skater' && p.team === 1) {
+        const gy = TEAM[p.team].attackY, dGoal = Math.abs(puck.y - gy), inFront = (gy - p.y) * (puck.y - p.y) > 0;
+        if (dGoal < 290 && dGoal > 45 && inFront && Math.abs(puck.x - W / 2) < 210 && Math.random() < 0.28 * aiSkill * aiSkill) {
+          // aim at the side your goalie is leaving open (sloppier on Easy)
+          const ax = clamp(openSideX(redGoal) + (Math.random() - 0.5) * (1 - aiSkill) * 60, W / 2 - GOAL / 2 + BR + 2, W / 2 + GOAL / 2 - BR - 2);
+          shotAt(0.2 + 0.4 * aiSkill, ax, Math.random() < 0.25 + 0.35 * aiSkill, G_BOT);
+          cpuShotLive = 90; sfx.slap(0.7);
+          return true;
+        }
+      }
+      // computer skaters "rim" a puck on the boards around the rink instead of pinning it
+      const bn = p.role === 'skater' ? boardNormal(puck.x, puck.y, BR + 16) : null;
+      if (bn) {
+        let tx = -bn[1], ty = bn[0];
+        const proj = (puck.x - p.x) * tx + (puck.y - p.y) * ty;    // send it away from the player who hit it
+        if (Math.abs(proj) > 4) { if (proj < 0) { tx = -tx; ty = -ty; } }
+        else {
+          const toward = TEAM[p.team].attackY > H / 2 ? 1 : -1;
+          if (Math.abs(ty) > 0.3 ? Math.sign(ty) !== toward : Math.sign(tx) !== (puck.x >= W / 2 ? 1 : -1)) { tx = -tx; ty = -ty; }
+        }
+        const rs = 6.5 * SPEED;
+        puck.vx = tx * rs - bn[0] * 0.5; puck.vy = ty * rs - bn[1] * 0.5;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+// ---------- Hockey rules ----------
+function announce(text, sub, color, frames, small) {
+  banner = { text, sub: sub || '', color: color || '#fff', t: frames, small: !!small };
+}
+
+// Line everyone up for a faceoff at a dot: one player from each team takes the draw
+function faceoffAt(x, y, quiet) {
+  const side = x < W / 2 ? 1 : -1;          // wingers line up toward the middle of the ice
+  you.x = x;                 you.y = y + 40;
+  blueA.x = x;               blueA.y = y - 40;
+  redMate.x = x + side * 95; redMate.y = y + 75;
+  blueB.x = x + side * 95;   blueB.y = y - 75;
+  if (x === W / 2) { redMate.x = W * 0.25; blueB.x = W * 0.75; }
+  redGoal.x = W / 2;  redGoal.y = G_BOT - GLINE;
+  blueGoal.x = W / 2; blueGoal.y = G_TOP + GLINE;
+  players.forEach(p => {
+    const b = boundsFor(p);
+    p.x = clamp(p.x, b.x0, b.x1); p.y = clamp(p.y, b.y0, b.y1); p.vx = 0; p.vy = 0;
+  });
+  you.tx = you.x; you.ty = you.y;
+  ref.x = x + (x > W - 60 ? -36 : 36); ref.y = y; ref.vx = 0; ref.vy = 0;
+  puck.x = x; puck.y = y; puck.vx = 0; puck.vy = 0; puck.h = 0; puck.vh = 0; charging = false;
+  lastTouch = null; lastByTeam = [null, null]; clearHats(); passTimer = 0; possession = null; grabCooldown = 0; stealWait = 0;
+  players.forEach(p => { p.stun = 0; p.bite = 0; });
+  mateGrab = 0; mateHold = 0; passFrom = null; passTarget = null; decoyWait = 0; shoveWait = 0;
+  stuckTimer = 0; stuckX = x; stuckY = y;
+  // the ref holds the puck up for a moment you can't predict, then drops it
+  puck.h = 32; foPhase = 1; foPressed = null; foDropT = 0;
+  pause = 45 + Math.floor(Math.random() * 45); afterPause = startDrop;
+  if (!quiet) announce('Faceoff', '', '#fff', 40, true);
+}
+
+// ---------- Faceoffs: tap WIN FACEOFF (or G / Space) right as the ref drops the puck ----------
+const foBtn = document.getElementById('faceoffBtn');
+function startDrop() { foPhase = 2; foDropT = 0; pause = 18; afterPause = resolveDraw; sfx.stick(0.25); }
+function faceoffTap() {
+  if (!running || !foPhase || foPressed !== null) return;   // only your first tap counts
+  foPressed = foPhase === 1 ? 'early' : foDropT;
+  if (foPressed === 'early') sfx.whoosh(); else sfx.stick(0.6);
+}
+function resolveDraw() {
+  let youWin;
+  if (foPressed === 'early') youWin = false;                            // jumped too soon: you lose the draw
+  else if (typeof foPressed === 'number') youWin = Math.random() < (foPressed <= 8 ? 0.97 : 0.85);   // great timing!
+  else youWin = Math.random() < (1.15 - aiSkill * 0.6) * 0.75;           // didn't try: up to chance
+  if (foPressed === 'early') announce('Too early!', 'Wait for the puck to drop', '#ff9a3c', 45, true);
+  else if (typeof foPressed === 'number') announce(youWin ? 'Faceoff won!' : 'Lost the draw', '', youWin ? '#2ecc71' : '#ffffff', 40, true);
+  foPhase = 0; puck.h = 0;
+  dropPuck(youWin);
+}
+foBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); faceoffTap(); });
+addEventListener('keydown', e => { if ((e.code === 'KeyG' || e.code === 'Space') && foPhase) { e.preventDefault(); faceoffTap(); } });
+
+// The referee drops the puck: one center wins the draw and pulls it back to a teammate
+function dropPuck(won) {
+  const youWin = won !== undefined ? won : Math.random() < 1.15 - aiSkill * 0.6;
+  const to = youWin ? redMate : blueB;
+  const dx = to.x - puck.x, dy = to.y - puck.y, d = Math.hypot(dx, dy) || 1;
+  const sp = 6 * SPEED;
+  puck.vx = dx / d * sp; puck.vy = dy / d * sp;
+  touch(to);
+  dropTimer = 14;                                           // the two centers step out of the way
+  sfx.stick(0.9);
+}
+function faceoffPositions() { faceoffAt(W / 2, H / 2, true); }
+
+// Referee blows the whistle, then a faceoff at the given dot
+function whistle(title, sub, dot) {
+  sfx.whistle();
+  announce(title, sub, '#ffffff', 85);
+  puck.vx = 0; puck.vy = 0; possession = null;
+  pause = 80;
+  afterPause = () => faceoffAt(dot[0], dot[1]);
+}
+const sideX = () => puck.x < W / 2 ? W * 0.24 : W * 0.76;
+
+// OFFSIDE: an attacking skater crosses the other team's blue line before the puck
+function offside(team) {
+  if (team === 0) whistle('OFFSIDE', `${TEAM[0].short} skated over the blue line before the puck`, [sideX(), H * 0.37]);
+  else whistle('OFFSIDE', `${TEAM[1].short} skated over the blue line before the puck`, [sideX(), H * 0.63]);
+}
+
+// ICING: shooting the puck from your own half across the other team's goal line, untouched
+function checkIcing(end) {        // end: 'top' = blue's end boards, 'bottom' = red's end boards
+  if (!lastTouch) return false;
+  if (end === 'top' && lastTouch.team === 0 && lastTouch.y > H / 2) {
+    whistle('ICING', `${TEAM[0].short} shot it from their own half across the far goal line`, [sideX(), H * 0.82]);
+    return true;
+  }
+  if (end === 'bottom' && lastTouch.team === 1 && lastTouch.y < H / 2) {
+    whistle('ICING', `${TEAM[1].short} shot it from their own half across the far goal line`, [sideX(), H * 0.18]);
+    return true;
+  }
+  return false;
+}
+
+// AI skaters stay onside: they wait at the blue line until the puck goes in first
+function keepOnside(p, t) {
+  if (p.team === 0 && puck.y > BL_TOP) t[1] = Math.max(t[1], BL_TOP + 14);
+  if (p.team === 1 && puck.y < BL_BOT) t[1] = Math.min(t[1], BL_BOT - 14);
+  return t;
+}
+
+function endGame() {
+  running = false;
+  const won = score[0] > score[1];
+  titleEl.textContent = won ? `${TEAM[0].short} Win! 🏆` : `${TEAM[1].short} Win`;
+  msgEl.innerHTML = `Final score: ${score[0]} – ${score[1]}${period === 4 ? ' (overtime)' : ''}<br>Play again?`;
+  setTimeout(() => overlay.classList.remove('hidden'), 900);
+}
+
+function endPeriod() {
+  sfx.buzzer();
+  puck.vx = 0; puck.vy = 0; possession = null;
+  if (period < 3) {
+    announce(`End of ${PERIOD_NAMES[period]} Period`, `Score ${score[0]} – ${score[1]}`, '#fff', 150, true);
+    pause = 160;
+    afterPause = () => {
+      period++; clock = PERIOD_SECONDS * 60;
+      faceoffAt(W / 2, H / 2, true);
+      announce(`${PERIOD_NAMES[period]} Period`, '', '#fff', 60, true);
+    };
+  } else if (score[0] === score[1]) {
+    announce('Overtime!', 'Tied game — next goal wins', '#ffd23f', 150, true);
+    pause = 160;
+    afterPause = () => { period = 4; faceoffAt(W / 2, H / 2, true); announce('Overtime', 'Next goal wins!', '#ffd23f', 60, true); };
+  } else {
+    announce('Final', `${score[0]} – ${score[1]}`, '#fff', 120, true);
+    endGame();
+  }
+}
+
+function goal(youScored) {
+  const team = youScored ? 0 : 1;
+  const ot = period === 4, buzzer = period <= 3 && clock <= 3 * 60;   // overtime winner / scored in the last 3 seconds
+  score[team]++;
+  // who scored? the last player on the scoring team to touch the puck
+  let scorer = lastByTeam[team];
+  if (!scorer) scorer = players.filter(p => p.team === team && p.role !== 'goalie')
+    .sort((a, b) => dist(a.x, a.y, puck.x, puck.y) - dist(b.x, b.y, puck.x, puck.y))[0];
+  const n = (goalsBy.get(scorer) || 0) + 1; goalsBy.set(scorer, n);
+  const hatTrick = n === 3, special = hatTrick || ot || buzzer;
+  flashColor = TEAM[team].c1;
+  if (youScored) { sfx.horn(); sfx.cheer(special ? 1.5 : 1); music.goalSong(); if (special) setTimeout(() => sfx.cheer(1.2), 1400); }
+  else { sfx.groan(); if (special) sfx.ooh(); }
+  puck.vx = 0; puck.vy = 0; puck.h = 0; puck.vh = 0; charging = false;
+  puck.y = youScored ? G_TOP - 14 : G_BOT + 14;                     // puck sits in the net
+  passTimer = 0; possession = null;
+  const who = scorer === you ? 'You' : `#${NUMBERS.get(scorer)} ${TEAM[team].short}`;
+  pause = special ? (hatTrick ? 340 : 270) : 100;
+  if (special) startShow(scorer, pause);
+  if (hatTrick) throwHats();
+  const title = hatTrick ? 'HAT TRICK!' : ot ? 'OVERTIME WINNER!' : buzzer ? 'BUZZER BEATER!' : 'GOAL!';
+  let sub = hatTrick ? `${who} — 3 goals!` : `${who} ${scorer === you ? 'score' : 'scores'}!`;
+  if (hatTrick && ot) sub += ' Overtime winner!'; else if (hatTrick && buzzer) sub += ' At the buzzer!';
+  if (ot) sub += ` The ${TEAM[team].name} win!`;
+  announce(title, sub, flashColor, special ? pause - 20 : 90);
+  afterPause = ot ? endGame : () => faceoffAt(W / 2, H / 2);
+}
+
+function step() {
+  if (!running) return;
+  if (banner.t > 0) banner.t--;
+  if (pause > 0) {
+    pause--;
+    if (pause === 0 && afterPause) { const f = afterPause; afterPause = null; f(); }
+    return;
+  }
+  if (passTimer > 0) passTimer--;
+  if (dropTimer > 0) dropTimer--;
+  if (grabCooldown > 0) grabCooldown--;
+  if (stealWait > 0) stealWait--;
+  if (lunge > 0) lunge--;
+  if (mateGrab > 0) mateGrab--;
+  if (decoyWait > 0) decoyWait--;
+  if (shoveWait > 0) shoveWait--;
+  if (shoveAnim > 0) shoveAnim--;
+
+  // game clock (overtime has no clock: next goal wins)
+  if (period <= 3 && --clock <= 0) { clock = 0; endPeriod(); return; }
+
+  readControls();
+  if (charging) {                                                // winding up a shot
+    if (possession !== you) charging = false;
+    else charge = Math.min(1, charge + 1 / 50);
+  }
+  if (shotLive > 0) shotLive--;
+  if (cpuShotLive > 0) cpuShotLive--;
+  if (charging && possession === you) {                         // winding up: glide while you aim
+    you.vx *= 0.965; you.vy *= 0.965; you.x += you.vx; you.y += you.vy; you.tx = you.x; you.ty = you.y;
+  } else {
+    const carrySlow = possession === you ? 0.8 : 1;             // a little slower with the puck
+    moveTo(you, you.tx, you.ty, 9.5 * carrySlow * (moving ? Math.max(0.35, moveMag) : 1));
+  }
+  teamAI();
+  separate();
+  constrainPlayers();
+
+  // Stickhandling: the puck rides on your blade, in front of you and a little to your stick side
+  if (possession) {
+    const hp = possession;
+    let ang;
+    if (hp === you) {
+      let want = carryAngle;
+      if (moving) want = Math.atan2(moveX, moveY);
+      else if (!charging && Math.hypot(you.vx, you.vy) > 0.6) want = Math.atan2(you.vx, you.vy);
+      if (charging && shotOnNet()) want = Math.atan2(aimX - puck.x, G_TOP - puck.y);   // square up to the target
+      carryAngle = angleLerp(carryAngle, want, charging ? 0.12 : 0.2); ang = carryAngle;
+    } else {
+      if (Math.hypot(hp.vx, hp.vy) > 0.6) mateAngle = angleLerp(mateAngle, Math.atan2(hp.vx, hp.vy), 0.2);
+      ang = mateAngle;
+    }
+    const wob = charging ? 0 : Math.sin(performance.now() * 0.012) * 4;   // little side-to-side dangle
+    const pull = charging && hp === you ? -10 * charge : 0;              // pull the puck back as you wind up
+    const fx = Math.sin(ang), fy = Math.cos(ang), rx = Math.cos(ang), ry = -Math.sin(ang);
+    const cx = hp.x + fx * (31 + pull) + rx * (22 + wob), cy = hp.y + fy * (31 + pull) + ry * (22 + wob);
+    puck.vx = cx - puck.x; puck.vy = cy - puck.y;                   // move to the blade this frame
+    puck.h = 0; puck.vh = 0;
+    touch(hp);
+  }
+
+  const prevY = puck.y;
+  const SUB = 4, touched = [false, false];
+  for (let i = 0; i < SUB; i++) {
+    const subPrevY = puck.y;
+    puck.x += puck.vx / SUB; puck.y += puck.vy / SUB;
+    players.forEach(p => {
+      if (p === passFrom && passTimer > 45) return;                     // a pass clears the passer's stick first
+      if (dropTimer > 0 && (p === you || p === blueA)) return;          // centers after the faceoff draw
+      if (possession) {
+        if (p.team === possession.team) return;                         // teammates don't bump it
+        const poke = p.r + BR + (p.role === 'goalie' ? 0 : 4 + 6 * aiSkill);   // stick reach for a poke-check
+        if (dist(p.x, p.y, puck.x, puck.y) < poke) {                    // a blue player pokes it loose!
+          if (possession === you) grabCooldown = 35; else mateGrab = 35;
+          possession = null; charging = false;
+          const dx = puck.x - p.x, dy = puck.y - p.y, d = Math.hypot(dx, dy) || 1;
+          puck.vx = dx / d * 5 * SPEED + p.vx * 0.5; puck.vy = dy / d * 5 * SPEED + p.vy * 0.5;
+          touch(p);
+          sfx.stick(0.8);
+        }
+        return;
+      }
+      if (p === you && grabCooldown === 0 && puck.h < 8 && dist(you.x, you.y, puck.x, puck.y) < you.r + BR + 3) {
+        possession = you; passTimer = 0;                                // got it on your stick
+        carryAngle = Math.atan2(puck.x - you.x, puck.y - you.y);
+        touch(you);
+        sfx.stick(0.4);
+        return;
+      }
+      if (p === redMate && mateGrab === 0 && puck.h < 8 && dist(p.x, p.y, puck.x, puck.y) < p.r + BR + 3) {
+        possession = redMate; passTimer = 0; mateHold = 0;              // your teammate has it
+        mateAngle = Math.atan2(puck.x - p.x, puck.y - p.y);
+        touch(redMate);
+        sfx.stick(0.4);
+        return;
+      }
+      if (hit(p)) touched[p.team] = true;
+    });
+
+    // Boards: straight sides and ends, then the rounded corners
+    let thud = 0;
+    if (puck.x < BR) { puck.x = BR; thud = Math.abs(puck.vx); puck.vx = Math.abs(puck.vx) * 0.85; }
+    if (puck.x > W - BR) { puck.x = W - BR; thud = Math.abs(puck.vx); puck.vx = -Math.abs(puck.vx) * 0.85; }
+    if (puck.y < BR) { puck.y = BR; thud = Math.abs(puck.vy); puck.vy = Math.abs(puck.vy) * 0.85; }
+    if (puck.y > H - BR) { puck.y = H - BR; thud = Math.abs(puck.vy); puck.vy = -Math.abs(puck.vy) * 0.85; }
+    const cn = cornerPush(puck, BR);
+    if (cn) { const dot = puck.vx * cn[0] + puck.vy * cn[1]; if (dot > 0) { puck.vx -= 1.85 * dot * cn[0]; puck.vy -= 1.85 * dot * cn[1]; thud = dot; } }
+    if (thud > 1 && possession !== you) sfx.boards(thud / (MAXV * SPEED));
+
+    // Goal posts are solid
+    for (const px of [W / 2 - GOAL / 2, W / 2 + GOAL / 2]) for (const py of [G_TOP, G_BOT]) {
+      if (puck.h > NH) continue;
+      const dx = puck.x - px, dy = puck.y - py, d = Math.hypot(dx, dy), m = BR + 3;
+      if (d < m && d > 0) {
+        const nx = dx / d, ny = dy / d, dot = puck.vx * nx + puck.vy * ny;
+        puck.x = px + nx * m; puck.y = py + ny * m;
+        if (dot < 0) {
+          puck.vx -= 1.8 * dot * nx; puck.vy -= 1.8 * dot * ny; sfx.post();   // ping!
+          if (shotLive > 0) { announce('POST!', '', '#ffd23f', 40, true); shotLive = 0; sfx.ooh(); }
+        }
+      }
+    }
+
+    // Did the puck cross a goal line? Between the posts (and under the crossbar) it's a goal.
+    const inMouth = Math.abs(puck.x - W / 2) < GOAL / 2 - BR * 0.4 && puck.h < NH - 2;
+    if (subPrevY >= G_TOP && puck.y < G_TOP) {
+      if (inMouth) { goal(true); return; }
+      if (checkIcing('top')) return;
+    }
+    if (subPrevY <= G_BOT && puck.y > G_BOT) {
+      if (inMouth) { goal(false); return; }
+      if (checkIcing('bottom')) return;
+    }
+    // The back and sides of the nets are solid (the front between the posts is open)
+    for (const top of [true, false]) {
+      const n = netPush(puck, BR, top, puck.h < NH - 2);
+      if (n) {
+        const dot = puck.vx * n[0] + puck.vy * n[1];
+        if (dot < 0) { puck.vx = (puck.vx - 1.5 * dot * n[0]) * 0.6; puck.vy = (puck.vy - 1.5 * dot * n[1]) * 0.6; }
+      }
+    }
+  }
+
+  // Scrum: both teams pinning the puck (usually on the boards) — after a moment it squirts loose
+  scrum = touched[0] && touched[1] ? scrum + 1 : Math.max(0, scrum - 2);
+  if (scrum > 14) {
+    scrum = 0;
+    const bn = boardNormal(puck.x, puck.y, BR + 30);
+    let ox = bn ? -bn[0] : (W / 2 - puck.x), oy = bn ? -bn[1] : (H / 2 - puck.y);
+    const ol = Math.hypot(ox, oy) || 1, side = (Math.random() - 0.5) * 1.4;
+    ox /= ol; oy /= ol;
+    const dx = ox - oy * side, dy = oy + ox * side, dl = Math.hypot(dx, dy);
+    puck.vx = dx / dl * 5.5 * SPEED; puck.vy = dy / dl * 5.5 * SPEED;
+    puck.x += puck.vx * 2; puck.y += puck.vy * 2;
+    sfx.stick(0.8);
+  }
+
+  // Lifted shots: up into the air and back down
+  if (puck.h > 0 || puck.vh !== 0) {
+    puck.vh -= (puck.g || GRAV); puck.h += puck.vh;
+    if (puck.h <= 0) { puck.h = 0; puck.vh = puck.vh < -1.2 ? -puck.vh * 0.3 : 0; }
+  }
+
+  // Offside: the puck just crossed into the zone and an attacker was already in there
+  if (prevY >= BL_TOP && puck.y < BL_TOP && [you, redMate].some(p => p.y < BL_TOP - 6)) { offside(0); return; }
+  if (prevY <= BL_BOT && puck.y > BL_BOT && [blueA, blueB].some(p => p.y > BL_BOT + 6)) { offside(1); return; }
+
+  if (possession) { stuckTimer = 0; stuckX = puck.x; stuckY = puck.y; } else checkStuck();
+  puck.vx *= FRICTION; puck.vy *= FRICTION;
+  const sp = Math.hypot(puck.vx, puck.vy);
+  const maxV = MAXV * SPEED * 1.25;
+  if (sp > maxV) { puck.vx *= maxV / sp; puck.vy *= maxV / sp; }
+}
+
+// ---------- Referee ----------
+function refStep() {
+  let tx, ty, fast = false;
+  if (afterPause === dropPuck && pause > 0) { tx = puck.x + (puck.x > W - 60 ? -36 : 36); ty = puck.y; fast = true; }   // drop the puck
+  else {
+    tx = puck.x < W / 2 ? Math.min(W - 40, puck.x + 170) : Math.max(40, puck.x - 170);   // stay near the play, out of the way
+    ty = clamp(puck.y + (puck.y < H / 2 ? 100 : -100), CR, H - CR);
+  }
+  const dx = tx - ref.x, dy = ty - ref.y, d = Math.hypot(dx, dy), mx = (fast ? 8 : 5) * SPEED;
+  const vx = d > mx ? dx / d * mx : dx, vy = d > mx ? dy / d * mx : dy;
+  ref.vx += (vx - ref.vx) * 0.15; ref.vy += (vy - ref.vy) * 0.15;
+  ref.x += ref.vx; ref.y += ref.vy;
+  players.forEach(p => {
+    const ex = ref.x - p.x, ey = ref.y - p.y, e = Math.hypot(ex, ey), m = ref.r + p.r + 4;
+    if (e < m && e > 0) { ref.x = p.x + ex / e * m; ref.y = p.y + ey / e * m; }
+  });
+  ref.x = clamp(ref.x, ref.r, W - ref.r); ref.y = clamp(ref.y, ref.r, H - ref.r);
+  cornerPush(ref, ref.r); netPush(ref, ref.r, true, false); netPush(ref, ref.r, false, false);
+}
+
+// ---------- Team picker on the start screen ----------
+function saveTeams() { try { localStorage.setItem('hockeyTeams', JSON.stringify(teamCfg)); } catch (e) {} }
+function buildTeamPicker() {
+  const panel = document.getElementById('teamsPanel');
+  panel.innerHTML = '';
+  [0, 1].forEach(i => {
+    if (i === 1) { const vs = document.createElement('div'); vs.className = 'vs'; vs.textContent = 'VS'; panel.appendChild(vs); }
+    const card = document.createElement('div'); card.className = 'teamCard';
+    const presetOpts = PRESETS.map((t, k) => `<option value="${k}">${t.logo.symbol === 'letters' ? '🔤' : t.logo.symbol} ${t.name}</option>`).join('');
+    const symOpts = LOGO_SYMBOLS.map(x => `<option value="${x}">${x === 'letters' ? '🔤 Letters' : x}</option>`).join('');
+    const shpOpts = LOGO_SHAPES.map(x => `<option value="${x}">${x[0].toUpperCase() + x.slice(1)}</option>`).join('');
+    card.innerHTML = `<h3>${i ? 'Opponent' : 'Your team'}</h3>
+      <canvas width="184" height="184"></canvas>
+      <div class="tname"></div>
+      ${i === 0 ? `<label class="numLabel">Your jersey number</label><input type="text" class="num" inputmode="numeric" pattern="[0-9]*" maxlength="2" aria-label="Your jersey number">` : ""}
+      <select class="preset" aria-label="Choose a team"><option value="custom">✏️ My own team</option>${presetOpts}</select>
+      <details><summary>Customize name &amp; logo</summary>
+        <label>Team name</label><input type="text" class="nm" maxlength="24">
+        <label>Short name (3 letters)</label><input type="text" class="ab" maxlength="3">
+        <label>Colors (main · trim)</label><div class="row"><input type="color" class="c1" aria-label="Main color"><input type="color" class="c2" aria-label="Trim color"></div>
+        <label>Logo</label><div class="row"><select class="sym" aria-label="Logo symbol">${symOpts}</select><select class="shp" aria-label="Logo shape">${shpOpts}</select></div>
+        <div class="lettersRow"><label>Logo letters</label><input type="text" class="txt" maxlength="3" placeholder="ABC"></div>
+      </details>`;
+    panel.appendChild(card);
+    const q = sel => card.querySelector(sel);
+    const refresh = () => {
+      const c = teamCfg[i];
+      const k = PRESETS.findIndex(t => JSON.stringify(t) === JSON.stringify(c));
+      // don't touch the box you're typing in (so you can erase it and the cursor stays put)
+      const set = (sel, v) => { const el = q(sel); if (el !== document.activeElement) el.value = v; };
+      q('.preset').value = k >= 0 ? String(k) : 'custom';
+      set('.nm', c.name); set('.ab', c.abbr || '');
+      q('.ab').placeholder = ((c.name || '').trim().split(/\s+/).pop() || 'ABC').slice(0, 3).toUpperCase();   // what it'll use if left empty set('.c1', c.c1); set('.c2', c.c2);
+      set('.sym', c.logo.symbol); set('.shp', c.logo.shape); set('.txt', c.logo.text || '');
+      q('.lettersRow').style.display = c.logo.symbol === 'letters' ? '' : 'none';
+      q('.tname').textContent = c.name.trim() || 'Type a team name…';
+      const num = q('.num');
+      if (num) {                                       // number box looks like your jersey
+        if (num !== document.activeElement) num.value = myNumber;
+        num.style.background = c.c1; num.style.color = inkOn(c.c1); num.style.borderColor = c.c2;
+      }
+      const cv = q('canvas'), g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height);
+      drawLogo(g, 92, 92, 80, { c1: c.c1, c2: c.c2, logo: c.logo, abbr: c.abbr });
+    };
+    const changed = () => { saveTeams(); refresh(); };
+    q('.preset').addEventListener('change', e => { if (e.target.value !== 'custom') { teamCfg[i] = copyTeam(PRESETS[+e.target.value]); } else { q('details').open = true; } changed(); });
+    if (q('.num')) q('.num').addEventListener('input', e => {
+      const v = e.target.value.replace(/\D/g, '').slice(0, 2);   // digits only, 0–99
+      if (e.target.value !== v) e.target.value = v;
+      myNumber = v;
+      if (v) { try { localStorage.setItem('hockeyNumber', v); } catch (err) {} }
+    });
+    if (q('.num')) q('.num').addEventListener('blur', e => { if (!myNumber) { myNumber = '9'; e.target.value = '9'; } });
+    q('.nm').addEventListener('input', e => { teamCfg[i].name = e.target.value; if (!teamCfg[i].abbrMine) teamCfg[i].abbr = ''; changed(); });
+    q('.ab').addEventListener('input', e => { teamCfg[i].abbr = e.target.value.toUpperCase(); teamCfg[i].abbrMine = !!e.target.value; changed(); });
+    q('.c1').addEventListener('input', e => { teamCfg[i].c1 = e.target.value; changed(); });
+    q('.c2').addEventListener('input', e => { teamCfg[i].c2 = e.target.value; changed(); });
+    q('.sym').addEventListener('change', e => { teamCfg[i].logo.symbol = e.target.value; changed(); });
+    q('.shp').addEventListener('change', e => { teamCfg[i].logo.shape = e.target.value; changed(); });
+    q('.txt').addEventListener('input', e => { teamCfg[i].logo.text = e.target.value.toUpperCase(); changed(); });
+    refresh();
+  });
+}
+buildTeamPicker();
+
+// ---------- Start ----------
+document.querySelectorAll('[data-lvl]').forEach(b => b.addEventListener('click', () => {
+  aiSkill = parseFloat(b.dataset.lvl);
+  saveTeams(); applyTeams();
+  msgEl.innerHTML = '';
+  score = [0, 0]; lastScore = [0, 0]; goalsBy.clear(); show.t = 0;
+  period = 1; clock = PERIOD_SECONDS * 60;
+  running = true;
+  faceoffAt(W / 2, H / 2, true);
+  announce('1st Period', `${PERIOD_SECONDS / 60} minutes on the clock`, '#fff', 70, true);
+  overlay.classList.add('hidden');
+  camYaw = 0; camPitch = 0.48; setView(viewIdx); updateCamera(true);
+  initAudio(); music.want('organ');
+}));
+
+applyTeams();
+faceoffPositions();
+let last = performance.now(), acc = 0;
+let frameAvg = 16, lastAdjust = 0;
+function loop(t) {
+  const dt = t - last;
+  acc += Math.min(dt, 100); last = t;
+  // if frames are slow, render a little less sharp; if there's room to spare, sharpen back up
+  if (dt > 0 && dt < 250) frameAvg += (dt - frameAvg) * 0.05;
+  if (t - lastAdjust > 2000) {
+    if (frameAvg > 22 && pixelRatio > 0.6) { pixelRatio = Math.max(0.6, pixelRatio - 0.15); renderer.setPixelRatio(pixelRatio); lastAdjust = t; }
+    else if (frameAvg < 13 && pixelRatio < MAX_PR) { pixelRatio = Math.min(MAX_PR, pixelRatio + 0.1); renderer.setPixelRatio(pixelRatio); lastAdjust = t + 3000; }
+  }
+  while (acc >= 1000 / 60) { step(); refStep(); celebStep(); acc -= 1000 / 60; }
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
