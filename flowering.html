@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowering • AKMU</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.18);
+      --border2: rgba(255,255,255,.40);
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 980px;
+      --card:#111;
+    }
+
+    *{box-sizing:border-box;}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:flex;
+      justify-content:center;
+      padding:24px;
+    }
+    .container{ width:100%; max-width:var(--maxw); }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0;
+      font-size: clamp(24px, 4.6vw, 40px);
+      letter-spacing:.4px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color:var(--fg);
+      text-decoration:none;
+      font-size:14px;
+      transition: transform 160ms ease, border-color 160ms ease;
+      -webkit-tap-highlight-color: transparent;
+      white-space:nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: var(--border2); }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .section{ padding:14px; display:grid; gap:12px; }
+
+    /* YouTube (custom thumbnail) */
+    .yt{
+      border-radius: 16px;
+      border:1px solid var(--border);
+      overflow:hidden;
+      background:#000;
+    }
+    .yt-inner{
+      position:relative;
+      width:100%;
+      aspect-ratio: 16 / 9;
+      background:#000;
+    }
+    .yt-embed{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:none;
+    }
+
+    .yt-cover{
+      position:absolute;
+      inset:0;
+      border:0;
+      padding:0;
+      margin:0;
+      width:100%;
+      height:100%;
+      cursor:pointer;
+      background:#000;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .yt-cover:focus-visible{
+      outline:3px solid rgba(255,255,255,.55);
+      outline-offset:-3px;
+    }
+
+    .yt-thumb{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+    }
+
+    .yt-overlay{
+      position:absolute;
+      inset:0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,.15),
+        rgba(0,0,0,.70)
+      );
+    }
+    .yt-ui{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding:14px;
+      color:rgba(255,255,255,.92);
+    }
+    .play{
+      border:1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.14);
+      color:var(--fg);
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .yt-text{
+      color:rgba(255,255,255,.86);
+      font-size:14px;
+    }
+
+    /* Album image + meta */
+    .album{
+      display:grid;
+      gap:12px;
+    }
+    .album img{
+      width:100%;
+      max-width: 360px;
+      border-radius: 16px;
+      border:1px solid var(--border);
+      background:#0b0b0b;
+      display:block;
+    }
+    .meta{
+      display:grid;
+      gap:6px;
+    }
+    .title{
+      margin:0;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing:.3px;
+    }
+    .sub{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .date{
+      margin:0;
+      color: rgba(255,255,255,.62);
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+
+    .text{
+      margin:0;
+      color: rgba(255,255,255,.88);
+      line-height:1.55;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    /* Track list (clickable links) */
+    .h2{
+      margin:6px 0 12px;
+      font-size:16px;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+    .tracks{
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:10px;
+    }
+    .track{
+      display:block;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.9);
+      font-size:14px;
+      letter-spacing:.2px;
+      text-decoration:none;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+    .track:hover{
+      transform: translateY(-1px);
+      border-color: var(--border2);
+      background: rgba(255,255,255,.08);
+    }
+
+    @media (min-width: 720px){
+      .album{ grid-template-columns: 360px 1fr; align-items:start; }
+      .album img{ max-width: 360px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="container">
+
+      <header>
+        <h1>Flowering</h1>
+        <a class="btn" href="akmu.html#discography">← Back</a>
+      </header>
+
+      <article class="card">
+        <div class="section">
+
+          <!-- YouTube (custom thumbnail: AKMU_images/youtube11.jpg) -->
+          <div class="yt" aria-label="YouTube video">
+            <div class="yt-inner">
+              <iframe
+                class="yt-embed"
+                id="yt"
+                title="Flowering (YouTube)"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen>
+              </iframe>
+
+              <button class="yt-cover" id="ytCover" type="button" aria-label="Play YouTube video">
+                <img class="yt-thumb" src="AKMU_images/youtube11.jpg" alt="Play YouTube video" loading="lazy" />
+                <span class="yt-overlay"></span>
+                <span class="yt-ui">
+                  <span class="play">▶ Play video</span>
+                  <span class="yt-text">YouTube • AKMU - ‘Paradise of Rumors’ M/V</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Album info -->
+          <div class="album">
+            <img src="AKMU_images/album11.jpg" alt="Flowering album cover" loading="lazy" />
+
+            <div class="meta">
+              <p class="title">Flowering</p>
+              <p class="sub">4th FULL ALBUM</p>
+              <p class="date">04-07-2026</p>
+
+              <p class="text">AKMU’s fourth full-length album is about 'Flowering'.
+
+For the beauty of growing,
+for the joy of finding your own season,
+for the happiness that comes after a long journey,
+and for the moments when life finally begins to bloom.
+
+Filled with heartfelt melodies and stories of growth, this album celebrates the beauty of discovering happiness in the present and blooming together along the way.</p>
+
+              <div>
+                <h2 class="h2">Track List</h2>
+                <ul class="tracks">
+                  <li><a class="track" href="https://music.apple.com/us/song/paradise-of-rumors/1887773335" target="_blank" rel="noopener">Paradise of Rumors</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/spring-colors/1887773337" target="_blank" rel="noopener">Spring Colors</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/paid-with-bugs/1887773338" target="_blank" rel="noopener">Paid with Bugs</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/joy-sorrow-a-beautiful-heart/1887773339" target="_blank" rel="noopener">Joy, Sorrow, a Beautiful Heart</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/sunshine-bless-you/1887773340" target="_blank" rel="noopener">Sunshine Bless You</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/tent/1887773341" target="_blank" rel="noopener">Tent</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/young-and-married/1887773342" target="_blank" rel="noopener">Young and Married</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/the-right-person/1887773343" target="_blank" rel="noopener">The Right Person</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/graceful-breakfast/1887773344" target="_blank" rel="noopener">Graceful Breakfast</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/festival-of-refugees/1887773345" target="_blank" rel="noopener">Festival of Refugees</a></li>
+                  <li><a class="track" href="https://music.apple.com/us/song/stains/1887773346" target="_blank" rel="noopener">Stains</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </article>
+
+    </main>
+  </div>
+
+  <script>
+    // Click-to-play YouTube embed (loads only when user clicks)
+    const VIDEO_ID = "SNn_H_Q2moo";
+    const cover = document.getElementById("ytCover");
+    const iframe = document.getElementById("yt");
+
+    function play() {
+      iframe.src = "https://www.youtube-nocookie.com/embed/" + VIDEO_ID + "?autoplay=1&rel=0";
+      iframe.style.display = "block";
+      cover.style.display = "none";
+    }
+
+    cover.addEventListener("click", play);
+  </script>
+</body>
+</html>
