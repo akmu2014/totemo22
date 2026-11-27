@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Science Olympiad Interview Practice</title>
+<style>
+  :root {
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --ink: #1d2433;
+    --muted: #5b6475;
+    --accent: #2f6fed;
+    --accent-soft: #e6eefe;
+    --done: #1f9d61;
+    --done-soft: #e3f6ec;
+    --retry: #d9822b;
+    --retry-soft: #fdf0e2;
+    --border: #dfe5ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161f;
+      --card: #1b2130;
+      --ink: #eef1f7;
+      --muted: #9aa4b8;
+      --accent: #6f9bff;
+      --accent-soft: #24304a;
+      --done: #4cc98c;
+      --done-soft: #1d3329;
+      --retry: #f0a35a;
+      --retry-soft: #3a2b1b;
+      --border: #2c3446;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { margin: 0 0 4px; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+  header p { margin: 0; color: var(--muted); }
+  h2.section { font-size: 1.3rem; margin: 32px 0 12px; }
+  [hidden] { display: none !important; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  /* Kid picker */
+  .picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 8px;
+  }
+  .kid-box {
+    background: var(--card);
+    border: 3px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    transition: border-color .15s, transform .1s;
+  }
+  .kid-box:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .kid-box .emoji { font-size: 3rem; display: block; margin-bottom: 8px; }
+  .kid-box .name { font-size: 1.8rem; font-weight: 800; display: block; }
+  .kid-box .sub { color: var(--muted); font-size: .95rem; display: block; margin-top: 4px; }
+
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .topbar h2 { margin: 0; font-size: 1.5rem; }
+
+  /* Schedule */
+  .sched-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+  .sched-card ul { margin: 0; padding-left: 20px; }
+  .countdown {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: .9rem;
+  }
+
+  /* Buttons */
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: .95rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.pass { background: var(--done); border-color: var(--done); color: #fff; font-weight: 600; padding: 10px 20px; }
+  .btn.retry { background: var(--retry); border-color: var(--retry); color: #fff; font-weight: 600; padding: 10px 20px; }
+
+  /* Getting ready */
+  .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .tab {
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tab:hover { border-color: var(--accent); }
+  .tab.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .ready-panel h3 { margin: 0 0 4px; font-size: 1.15rem; }
+  .ready-panel .hint { color: var(--muted); font-size: .9rem; margin: 0 0 14px; }
+  .lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .line {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: background .15s, border-color .15s;
+  }
+  .line.speaking { background: var(--accent-soft); border-color: var(--accent); }
+  .line.heard .qmark { background: var(--done); }
+  .qmark {
+    flex: 0 0 auto;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .qmark:hover { filter: brightness(1.1); }
+  .line span { padding-top: 5px; }
+
+  /* Question stage */
+  .stage { min-height: 180px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 16px; }
+  .stage .label { color: var(--muted); font-size: .9rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .stage .question { font-size: clamp(1.25rem, 3vw, 1.6rem); font-weight: 600; margin: 8px 0 12px; }
+  .stage .answer {
+    color: var(--accent);
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+    margin: 0 0 16px;
+    padding: 10px 14px;
+    border-left: 4px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 10px 10px 0;
+  }
+  .stage .answer b { display: block; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .play-ans { margin-top: 10px; border-color: var(--accent); color: var(--accent); background: var(--card); font-weight: 600; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .result { display: none; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .result.show { display: flex; }
+  .listening { color: var(--muted); font-size: .95rem; margin-bottom: 14px; display: none; }
+  .listening.show { display: block; }
+  .speed { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: .9rem; }
+
+  .progress { margin: 0 0 12px; color: var(--muted); font-size: .95rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .85rem; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px; }
+  .q-btn {
+    aspect-ratio: 1.3 / 1;
+    background: var(--card);
+    color: var(--ink);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-size: 1.4rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color .15s, transform .1s;
+  }
+  .q-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .q-btn.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .q-btn.passed { border-color: var(--done); background: var(--done-soft); color: var(--done); }
+  .q-btn.retry { border-color: var(--retry); background: var(--retry-soft); color: var(--retry); }
+  .q-btn.active.passed, .q-btn.active.retry { box-shadow: 0 0 0 3px var(--accent); }
+
+  .note { color: var(--muted); font-size: .85rem; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🔬 Science Olympiad Interview Practice</h1>
+    <p>Get ready, then practice answering out loud like it's the real interview!</p>
+  </header>
+
+  <!-- Step 1: pick a kid -->
+  <section id="pickerView">
+    <h2 class="section" style="text-align:center">Who is practicing today?</h2>
+    <div class="picker" id="picker"></div>
+  </section>
+
+  <!-- Step 2: that kid's practice page -->
+  <section id="kidView" hidden>
+    <div class="topbar">
+      <h2 id="kidHeading"></h2>
+      <button class="btn" id="backBtn">⬅ Switch student</button>
+    </div>
+
+    <!-- Interview time -->
+    <div class="card sched-card">
+      <h3 id="schedTitle"></h3>
+      <ul id="schedList"></ul>
+      <span class="countdown" id="countdown"></span>
+    </div>
+
+    <!-- Getting ready -->
+    <h2 class="section">📘 Getting ready</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="card ready-panel" id="readyPanel">
+      <h3 id="readyTitle">Pick a topic above</h3>
+      <p class="hint" id="readyHint">Choose a button to see the tips. Then tap each <b>?</b> to hear it read out, one at a time.</p>
+      <ul class="lines" id="readyLines"></ul>
+    </div>
+
+    <!-- Questions -->
+    <h2 class="section">🎤 Practice questions</h2>
+    <section class="card stage" aria-live="polite">
+      <div class="label" id="stageLabel">Ready when you are</div>
+      <div class="question" id="stageText">Tap a question number below. You'll hear the question, then answer it out loud.</div>
+      <div class="answer" id="stageAnswer" hidden><b>My answer</b><span id="stageAnswerText"></span><br><button class="btn play-ans" id="playAnsBtn">🔊 Hear my answer</button></div>
+      <div class="listening" id="listening">🔊 Listening… then answer out loud.</div>
+      <div class="result" id="result">
+        <button class="btn pass" id="passBtn">✅ Pass</button>
+        <button class="btn retry" id="retryBtn">🔁 Re-try</button>
+      </div>
+      <div class="controls">
+        <button class="btn" id="stopBtn">⏹ Stop</button>
+        <button class="btn" id="randomBtn">🎲 Random question</button>
+        <label class="speed">Speed
+          <select id="rate" class="btn">
+            <option value="0.8">Slow</option>
+            <option value="0.95" selected>Normal</option>
+            <option value="1.1">Fast</option>
+          </select>
+        </label>
+      </div>
+      <div class="note" id="voiceNote"></div>
+    </section>
+
+    <div class="progress">
+      <span id="progressText">Passed 0 of 11</span>
+      <span class="legend">
+        <span><span class="dot" style="background:var(--done)"></span>Pass</span>
+        <span><span class="dot" style="background:var(--retry)"></span>Re-try</span>
+      </span>
+      <button class="btn" id="resetBtn">Reset progress</button>
+    </div>
+    <section class="grid" id="grid"></section>
+  </section>
+</div>
+
+<script>
+/* ---------- Content ---------- */
+const questions = [
+  "Tell me something about yourself that I might know from our normal classes together.",
+  "Why do you want to be on this team?",
+  "What do you already know about Science Olympiad? What do you think we actually do at practice?",
+  "Tell me about something in science you think is really cool.",
+  "Practices are every Thursday until 4:30, and you would need to practice at home most weeks. Tell me your plan for that.",
+  "What else do you have going on between January and May?",
+  "Tell me about a time something was really hard and you kept going anyway.",
+  "You will practice an event for months and might still not place at the tournament. How would you handle that?",
+  "What would you do if you were at practice and did not understand something?",
+  "Tell me about a time you worked with a partner or group and something went wrong. What did you do?",
+  "Do you have any questions for me?"
+];
+
+const kids = {
+  benja: {
+    name: "Benja",
+    emoji: "🏒",
+    when: "Tuesday 12/1 at 2:45 PM",
+    date: "2026-12-01T14:45:00",
+    room: "LS Science Room",
+    length: "About 10–15 minutes",
+    // One answer per question, in order (Q1–Q11)
+    answers: [
+      "I'm in 3rd grade, and I play hockey on a travel team called the Sabres. I enjoy learning about science. I also like playing on my iPad in my free time.",
+      "I want to win medals at Science Olympiad. I want to compete and win. Being on this science team will help me study and prepare for the Olympiad.",
+      "Many students from different schools compete in Science Olympiad. The winners get medals, and some of the students who don't get medals cry, so I know it's important to practice hard. At practice, students study and prepare for Science Olympiad at the science club.",
+      "I'm interested in learning about Tesla's flying car. I want to make a flying car someday. I'm also interested in learning science facts, and about space and Earth too.",
+      "I plan to practice at home whenever I can, for at least 10 minutes a day. I also plan to practice in the car.",
+      "I have a hockey tournament in January, and that's it.",
+      "I had a tournament in Buffalo one weekend and came home really tired. The next day, I had hockey practice. I didn't want to go because I was so tired, but I didn't give up and went anyway. I felt good after practice, and I did well in the next game.",
+      "I would just go home without crying, and I would play video games all day. Then I would study more for the next Science Olympiad.",
+      "I would ask my friends and you for help.",
+      "In a hockey game, I passed the puck to my teammate, but he didn't score a goal. We didn't panic and kept going. We went after the rebound over and over and scored a goal in the end.",
+      "How do I pick my partner?"
+    ]
+  },
+  harry: {
+    name: "Harry",
+    emoji: "🧪",
+    when: "Monday 12/7 at 1:15 PM",
+    date: "2026-12-07T13:15:00",
+    room: "LS Science Room",
+    length: "About 10–15 minutes",
+    // One answer per question, in order (Q1–Q11). Q10–Q11 left blank for now.
+    answers: [
+      "Hi, my name is Harrison. I'm in 5th grade, and I play hockey on a travel team called the Sabres. I like learning science and math.",
+      "I was in science club last year and competed in Science Olympiad. I really enjoyed it, and I believe I can do even better this year. That's why I want to join the science team and prepare for Science Olympiad.",
+      "There are many different events in Science Olympiad, and we compete against students from other schools. At science club, we practice and prepare for the Olympiad.",
+      "Although I mentioned in my application that I like engineering because I enjoy building things, I'm also interested in the solar system and space science. I enjoy learning about planets like Jupiter, Neptune, and Earth. There are so many things to learn about, and I want to discover something in space someday.",
+      "I plan to study for 20 minutes to 1 hour a day, depending on my schedule. When I have hockey practice, I don't have much time to study at home, so I might study in the car instead.",
+      "I have a hockey tournament in January, and my hockey season ends at the end of February. I don't have anything special planned from March to May.",
+      "Compared to the other players on my team, I didn't have many years of hockey experience. When I joined a team last year, I was one of the weakest players. But I kept going and kept practicing, and I got better and better. This year, I made it onto a travel hockey team, and now I'm one of the top players and highest scorers on my team. I don't give up, and I always practice and work hard.",
+      "I would just go home without crying, and I would play video games all day. Then I would study more for the next Science Olympiad.", // Q8 (same as Benja)
+      "I would ask my friends and you for help.", // Q9 (same as Benja)
+      "", // Q10 – no answer yet
+      ""  // Q11 – no answer yet
+    ]
+  }
+};
+
+const ready = [
+  {
+    tab: "Intro",
+    title: "How to Get Ready for Your Interview",
+    lines: [
+      "An interview is a conversation where someone asks you questions to learn about you.",
+      "Adults do them to get jobs.",
+      "Older students do them to get into colleges and programs.",
+      "You and I already know each other from science class, so this is not about introducing yourself.",
+      "This is your chance to tell me why you want to be on this team, how you like to work, and what you would bring to it.",
+      "Things I would not know just from class."
+    ]
+  },
+  {
+    tab: "Before your interview",
+    title: "Before your interview",
+    lines: [
+      "Reread your application. I will ask you about things you wrote, so remember what you said.",
+      "Practice out loud with a grown-up or a friend. Saying your answers out loud is very different from thinking them.",
+      "Think of one science topic you love and could talk about for a whole minute.",
+      "Bring a question to ask me. Good interviews go both ways. “What is the hardest event?” or “How do we pick our events?” are great questions.",
+      "Get a good night's sleep and know where and when your interview is scheduled."
+    ]
+  },
+  {
+    tab: "During your interview",
+    title: "During your interview",
+    lines: [
+      "Walk in, look me in the eye, shake my hand, and say hello.",
+      "Sit up. Keep hands away from your face, so I can hear you.",
+      "It is completely fine to pause and think before you answer. Say “let me think about that for a second.” That looks confident, not slow.",
+      "Answer in full sentences instead of just “yes” or “I don't know.” Give me a because.",
+      "Say the whole thought out loud, even if you think I already know it. In an interview, the only things that count are the things you actually say.",
+      "Be honest. If you do not know something, say so, then tell me what you would do to find out.",
+      "Say thank you at the end."
+    ]
+  },
+  {
+    tab: "Things you do not need to worry about",
+    title: "Things you do not need to worry about",
+    lines: [
+      "Being nervous. Everybody is. Being nervous and doing it anyway is called being brave.",
+      "Having the “right” answer. There isn't one. I want to hear how you think and what matters to you.",
+      "Being the smartest person in the room. I am looking for effort, curiosity, and heart."
+    ]
+  }
+];
+
+/* ---------- Speech ---------- */
+const rateSel = document.getElementById("rate");
+const synthOK = "speechSynthesis" in window;
+let voice = null;
+let speechToken = 0;
+let fallbackTimer = null;
+
+function pickVoice() {
+  if (!synthOK) return;
+  const voices = speechSynthesis.getVoices();
+  voice = voices.find(v => /en-US/i.test(v.lang) && /Samantha|Google US|Aria|Jenny/i.test(v.name))
+       || voices.find(v => /^en/i.test(v.lang)) || null;
+}
+if (synthOK) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+} else {
+  document.getElementById("voiceNote").textContent =
+    "Your browser can't read aloud, but you can still read everything on screen.";
+}
+
+// speak(text, onDone) — onDone runs once when reading finishes (or is skipped)
+function speak(text, onDone) {
+  const token = ++speechToken;
+  clearTimeout(fallbackTimer);
+  let finished = false;
+  const done = () => {
+    if (finished || token !== speechToken) return;
+    finished = true;
+    clearTimeout(fallbackTimer);
+    onDone && onDone();
+  };
+  if (!synthOK) { done(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[“”]/g, '"'));
+  if (voice) u.voice = voice;
+  u.rate = parseFloat(rateSel.value);
+  u.onend = done;
+  u.onerror = done;
+  // Safety net in case a browser never fires "end"
+  const est = (text.split(/\s+/).length / (2.6 * u.rate)) * 1000 + 2500;
+  fallbackTimer = setTimeout(done, est);
+  setTimeout(() => speechSynthesis.speak(u), 60);
+}
+
+function stopSpeech() {
+  speechToken++;
+  clearTimeout(fallbackTimer);
+  if (synthOK) speechSynthesis.cancel();
+  document.querySelectorAll(".line.speaking").forEach(l => l.classList.remove("speaking"));
+}
+
+/* ---------- Kid picker ---------- */
+const pickerView = document.getElementById("pickerView");
+const kidView = document.getElementById("kidView");
+let kidKey = null;
+
+Object.entries(kids).forEach(([key, kid]) => {
+  const b = document.createElement("button");
+  b.className = "kid-box";
+  b.innerHTML = `<span class="emoji">${kid.emoji}</span><span class="name">${kid.name}</span><span class="sub">${kid.when}</span>`;
+  b.addEventListener("click", () => openKid(key));
+  document.getElementById("picker").appendChild(b);
+});
+
+function countdownText(dateStr) {
+  const target = new Date(dateStr);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const days = Math.round((day - today) / 86400000);
+  if (days > 1) return `⏳ ${days} days to go`;
+  if (days === 1) return "⏳ Tomorrow!";
+  if (days === 0) return target > now ? "⭐ Today — you've got this!" : "✅ Done — great job!";
+  return "✅ Done — great job!";
+}
+
+function openKid(key) {
+  stopSpeech();
+  kidKey = key;
+  const kid = kids[key];
+  document.getElementById("kidHeading").textContent = `${kid.emoji} ${kid.name}'s practice`;
+  document.getElementById("schedTitle").textContent = `🗓️ ${kid.name}'s interview`;
+  document.getElementById("schedList").innerHTML =
+    `<li>${kid.when}</li><li>${kid.room}</li><li>${kid.length}</li>`;
+  document.getElementById("countdown").textContent = countdownText(kid.date);
+
+  // reset Getting ready panel
+  tabButtons.forEach(b => b.classList.remove("active"));
+  readyTitle.textContent = "Pick a topic above";
+  readyHint.innerHTML = "Choose a button to see the tips. Then tap each <b>?</b> to hear it read out, one at a time.";
+  readyLines.innerHTML = "";
+
+  // reset question stage and load this kid's progress
+  current = -1;
+  stageLabel.textContent = "Ready when you are";
+  stageText.textContent = "Tap a question number below. You'll hear the question, then answer it out loud.";
+  answerEl.hidden = true;
+  resultEl.classList.remove("show");
+  listeningEl.classList.remove("show");
+  status = load();
+  refresh();
+
+  pickerView.hidden = true;
+  kidView.hidden = false;
+  window.scrollTo(0, 0);
+}
+
+document.getElementById("backBtn").addEventListener("click", () => {
+  stopSpeech();
+  kidView.hidden = true;
+  pickerView.hidden = false;
+  window.scrollTo(0, 0);
+});
+
+/* ---------- Getting ready ---------- */
+const tabsEl = document.getElementById("tabs");
+const readyTitle = document.getElementById("readyTitle");
+const readyHint = document.getElementById("readyHint");
+const readyLines = document.getElementById("readyLines");
+
+const tabButtons = ready.map((sec, i) => {
+  const b = document.createElement("button");
+  b.className = "tab";
+  b.textContent = `${i + 1}) ${sec.tab}`;
+  b.addEventListener("click", () => openSection(i));
+  tabsEl.appendChild(b);
+  return b;
+});
+
+function openSection(i) {
+  stopSpeech();
+  tabButtons.forEach((b, j) => b.classList.toggle("active", i === j));
+  const sec = ready[i];
+  readyTitle.textContent = sec.title;
+  readyHint.innerHTML = "Tap each <b>?</b> to hear that tip read out loud.";
+  readyLines.innerHTML = "";
+  sec.lines.forEach(text => {
+    const li = document.createElement("li");
+    li.className = "line";
+    const q = document.createElement("button");
+    q.className = "qmark";
+    q.textContent = "?";
+    q.setAttribute("aria-label", "Read this out loud");
+    const span = document.createElement("span");
+    span.textContent = text;
+    q.addEventListener("click", () => {
+      stopSpeech();
+      li.classList.add("speaking", "heard");
+      speak(text, () => li.classList.remove("speaking"));
+    });
+    li.append(q, span);
+    readyLines.appendChild(li);
+  });
+  speak(sec.title);
+}
+
+/* ---------- Questions ---------- */
+const grid = document.getElementById("grid");
+const stageLabel = document.getElementById("stageLabel");
+const stageText = document.getElementById("stageText");
+const answerEl = document.getElementById("stageAnswer");
+const answerTextEl = document.getElementById("stageAnswerText");
+const resultEl = document.getElementById("result");
+const listeningEl = document.getElementById("listening");
+const progressText = document.getElementById("progressText");
+
+let current = -1;
+let status = {}; // index -> "passed" | "retry"  (saved separately for each kid)
+function storeKey() { return `so-status-${kidKey}`; }
+function load() {
+  try { return JSON.parse(localStorage.getItem(storeKey()) || "{}") || {}; } catch (e) { return {}; }
+}
+function save() { try { localStorage.setItem(storeKey(), JSON.stringify(status)); } catch (e) {} }
+
+const qButtons = questions.map((q, i) => {
+  const b = document.createElement("button");
+  b.className = "q-btn";
+  b.textContent = `Q${i + 1}`;
+  b.addEventListener("click", () => ask(i));
+  grid.appendChild(b);
+  return b;
+});
+
+function refresh() {
+  qButtons.forEach((b, i) => {
+    b.classList.toggle("active", i === current);
+    b.classList.toggle("passed", status[i] === "passed");
+    b.classList.toggle("retry", status[i] === "retry");
+  });
+  const passed = Object.values(status).filter(s => s === "passed").length;
+  progressText.textContent = passed === questions.length
+    ? `🎉 Passed all ${questions.length}! Amazing!`
+    : `Passed ${passed} of ${questions.length}`;
+}
+
+function ask(i) {
+  stopSpeech();
+  current = i;
+  stageLabel.textContent = `Question ${i + 1} of ${questions.length}`;
+  stageText.textContent = questions[i];
+  const ans = kids[kidKey].answers[i];
+  if (ans) { answerTextEl.textContent = ans; answerEl.hidden = false; }
+  else { answerEl.hidden = true; }
+  resultEl.classList.remove("show");
+  listeningEl.classList.add("show");
+  refresh();
+  speak(questions[i], () => {
+    listeningEl.classList.remove("show");
+    resultEl.classList.add("show");
+  });
+}
+
+document.getElementById("passBtn").addEventListener("click", () => {
+  if (current < 0) return;
+  status[current] = "passed";
+  save();
+  refresh();
+  resultEl.classList.remove("show");
+  stageLabel.textContent = `Question ${current + 1} — passed!`;
+  speak("Great job!");
+});
+
+document.getElementById("retryBtn").addEventListener("click", () => {
+  if (current < 0) return;
+  status[current] = "retry";
+  save();
+  ask(current);
+});
+
+document.getElementById("playAnsBtn").addEventListener("click", () => {
+  if (current < 0) return;
+  const ans = kids[kidKey].answers[current];
+  if (!ans) return;
+  stopSpeech();
+  listeningEl.classList.remove("show");
+  resultEl.classList.add("show");
+  speak(ans);
+});
+
+document.getElementById("stopBtn").addEventListener("click", () => {
+  stopSpeech();
+  if (current >= 0) { listeningEl.classList.remove("show"); resultEl.classList.add("show"); }
+});
+
+document.getElementById("randomBtn").addEventListener("click", () => {
+  // Prefer questions not yet passed
+  let pool = questions.map((_, i) => i).filter(i => status[i] !== "passed" && i !== current);
+  if (!pool.length) pool = questions.map((_, i) => i).filter(i => i !== current);
+  ask(pool[Math.floor(Math.random() * pool.length)]);
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  status = {};
+  save();
+  refresh();
+});
+</script>
+</body>
+</html>
